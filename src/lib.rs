@@ -33,6 +33,7 @@ pub struct Example {
     pub name: &'static str,
     pub description: &'static str,
     pub code: &'static str,
+    pub commentary: &'static str,
     pub difficulty: Difficulty,
 }
 

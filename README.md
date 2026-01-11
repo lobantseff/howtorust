@@ -6,9 +6,10 @@ An interactive command-line tool for learning Rust concepts through executable e
 
 - **8 Comprehensive Chapters** covering core Rust concepts
 - **75 Executable Examples** organized by difficulty (beginner → intermediate → advanced)
+- **Comprehensive Commentary** - every example includes detailed explanations with Rust Book references
 - **Interactive CLI** with syntax-highlighted code display
-- **Module Organization Showcase** - demonstrates both single-file and subdirectory module patterns
-- **Real, Runnable Code** - see the code and run it instantly
+- **Professional Module Organization** - all modules use subdirectory structure
+- **Real, Runnable Code** - see the code, output, and commentary together
 - **Progressive Learning** - examples build from simple to complex within each topic
 
 ## Installation
@@ -135,33 +136,33 @@ Process sequences efficiently with iterator adapters and consumers.
 rust_traits/
 ├── Cargo.toml              # Project configuration
 ├── README.md               # This file
-├── MODULE_ORGANIZATION.md  # Guide to single-file vs directory modules
+├── MODULE_ORGANIZATION.md  # Guide to module organization patterns
 └── src/
     ├── lib.rs              # Public API and module declarations
-    ├── main.rs             # CLI interface
+    ├── main.rs             # CLI interface with commentary display
     │
-    ├── closures/           # 📁 Directory-based module example
+    ├── closures/           # 📁 All modules use subdirectory organization
     │   ├── mod.rs          # Module root
-    │   ├── examples.rs     # Example definitions
+    │   ├── examples.rs     # Example definitions with commentary
     │   └── runners.rs      # Example execution
-    │
-    ├── ownership.rs        # 📄 Single-file modules
-    ├── packages_crates_modules.rs
-    ├── generics.rs
-    ├── traits.rs
-    ├── lifetimes.rs
-    ├── error_handling.rs
-    └── iterators.rs
+    ├── ownership/
+    ├── packages_crates_modules/
+    ├── generics/
+    ├── traits/
+    ├── lifetimes/
+    ├── error_handling/
+    └── iterators/
 ```
 
 **Module Organization:**
-- Most modules are single `.rs` files (simpler for smaller modules)
-- `closures/` demonstrates **subdirectory organization** for larger modules
-- Both approaches provide identical public APIs
-- See [MODULE_ORGANIZATION.md](MODULE_ORGANIZATION.md) for detailed guide
+- **All 8 modules** use subdirectory organization for consistency
+- Each module contains `mod.rs`, `examples.rs`, and `runners.rs`
+- Demonstrates professional Rust project structure
+- See [MODULE_ORGANIZATION.md](MODULE_ORGANIZATION.md) for detailed patterns
 
 Each module contains:
-- Example definitions with code, description, and difficulty level
+- Example definitions with code, description, and **comprehensive commentary**
+- Commentary includes Rust Book references, explanations, and best practices
 - Executable functions that demonstrate each concept
 - A `run_example()` function to execute specific examples
 

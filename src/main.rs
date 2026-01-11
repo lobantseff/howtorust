@@ -259,6 +259,14 @@ fn display_and_run_example(chapter_name: &str, example: &howrust::Example) {
     run_chapter_example(chapter_name, example.name);
     println!("{}", "-".repeat(60).dimmed());
     println!();
+
+    println!("{}", "Commentary:".bold().blue());
+    println!("{}", "-".repeat(60).dimmed());
+    for line in example.commentary.lines() {
+        println!("{}", line);
+    }
+    println!("{}", "-".repeat(60).dimmed());
+    println!();
 }
 
 fn run_specific_example(chapter_name: &str, example_name: &str) {
