@@ -136,19 +136,22 @@ fn show_chapter(chapter_name: &str) {
     // Group examples by difficulty
     let beginners: Vec<_> = examples
         .iter()
-        .filter(|e| e.difficulty == Difficulty::Beginner)
+        .enumerate()
+        .filter(|(_, e)| e.difficulty == Difficulty::Beginner)
         .collect();
     let intermediates: Vec<_> = examples
         .iter()
-        .filter(|e| e.difficulty == Difficulty::Intermediate)
+        .enumerate()
+        .filter(|(_, e)| e.difficulty == Difficulty::Intermediate)
         .collect();
     let advanced: Vec<_> = examples
         .iter()
-        .filter(|e| e.difficulty == Difficulty::Advanced)
+        .enumerate()
+        .filter(|(_, e)| e.difficulty == Difficulty::Advanced)
         .collect();
 
     println!("{} ({} examples)", "Beginner".green().bold(), beginners.len());
-    for (idx, example) in beginners.iter().enumerate() {
+    for (idx, example) in beginners.iter() {
         println!("  {}. {} - {}", idx + 1, example.name.cyan(), example.description);
     }
     println!();
@@ -158,7 +161,7 @@ fn show_chapter(chapter_name: &str) {
         "Intermediate".yellow().bold(),
         intermediates.len()
     );
-    for (idx, example) in intermediates.iter().enumerate() {
+    for (idx, example) in intermediates.iter() {
         println!("  {}. {} - {}", idx + 1, example.name.cyan(), example.description);
     }
     println!();
@@ -168,7 +171,7 @@ fn show_chapter(chapter_name: &str) {
         "Advanced".red().bold(),
         advanced.len()
     );
-    for (idx, example) in advanced.iter().enumerate() {
+    for (idx, example) in advanced.iter() {
         println!("  {}. {} - {}", idx + 1, example.name.cyan(), example.description);
     }
     println!();

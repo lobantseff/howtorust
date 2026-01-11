@@ -5,10 +5,11 @@ An interactive command-line tool for learning Rust concepts through executable e
 ## Features
 
 - **8 Comprehensive Chapters** covering core Rust concepts
-- **60+ Executable Examples** organized by difficulty
+- **75 Executable Examples** organized by difficulty (beginner → intermediate → advanced)
 - **Interactive CLI** with syntax-highlighted code display
-- **Module-based Architecture** demonstrating Rust's code organization
-- **Executable Examples** - see the code and run it instantly
+- **Module Organization Showcase** - demonstrates both single-file and subdirectory module patterns
+- **Real, Runnable Code** - see the code and run it instantly
+- **Progressive Learning** - examples build from simple to complex within each topic
 
 ## Installation
 
@@ -134,20 +135,32 @@ Process sequences efficiently with iterator adapters and consumers.
 rust_traits/
 ├── Cargo.toml              # Project configuration
 ├── README.md               # This file
+├── MODULE_ORGANIZATION.md  # Guide to single-file vs directory modules
 └── src/
     ├── lib.rs              # Public API and module declarations
     ├── main.rs             # CLI interface
-    ├── ownership.rs        # Ownership examples
-    ├── packages_crates_modules.rs  # Module system examples
-    ├── generics.rs         # Generic types examples
-    ├── traits.rs           # Traits examples
-    ├── lifetimes.rs        # Lifetimes examples
-    ├── error_handling.rs   # Error handling examples
-    ├── closures.rs         # Closures examples
-    └── iterators.rs        # Iterators examples
+    │
+    ├── closures/           # 📁 Directory-based module example
+    │   ├── mod.rs          # Module root
+    │   ├── examples.rs     # Example definitions
+    │   └── runners.rs      # Example execution
+    │
+    ├── ownership.rs        # 📄 Single-file modules
+    ├── packages_crates_modules.rs
+    ├── generics.rs
+    ├── traits.rs
+    ├── lifetimes.rs
+    ├── error_handling.rs
+    └── iterators.rs
 ```
 
-Each module (`*.rs`) contains:
+**Module Organization:**
+- Most modules are single `.rs` files (simpler for smaller modules)
+- `closures/` demonstrates **subdirectory organization** for larger modules
+- Both approaches provide identical public APIs
+- See [MODULE_ORGANIZATION.md](MODULE_ORGANIZATION.md) for detailed guide
+
+Each module contains:
 - Example definitions with code, description, and difficulty level
 - Executable functions that demonstrate each concept
 - A `run_example()` function to execute specific examples
