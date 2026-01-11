@@ -1,0 +1,11 @@
+[package]
+name = "howrust"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "howrust"
+path = "src/main.rs"
+
+[dependencies]
+colored = "2.1"
