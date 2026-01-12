@@ -1,6 +1,7 @@
 // HowRust: Interactive Rust Tutorial and Cheatsheet
 // Main library exposing all tutorial modules
 
+pub mod async_prog;
 pub mod closures;
 pub mod error_handling;
 pub mod generics;
@@ -8,6 +9,7 @@ pub mod iterators;
 pub mod lifetimes;
 pub mod ownership;
 pub mod packages_crates_modules;
+pub mod threads;
 pub mod traits;
 
 use std::fmt;
@@ -84,6 +86,16 @@ pub const CHAPTERS: &[Chapter] = &[
         title: "Iterators",
         description: "Process sequences of values efficiently",
     },
+    Chapter {
+        name: "threads",
+        title: "Threads",
+        description: "Concurrent execution with threads and synchronization",
+    },
+    Chapter {
+        name: "async",
+        title: "Async Programming",
+        description: "Asynchronous programming with async/await and futures",
+    },
 ];
 
 pub fn get_chapter_examples(chapter: &str) -> Option<Vec<Example>> {
@@ -96,6 +108,8 @@ pub fn get_chapter_examples(chapter: &str) -> Option<Vec<Example>> {
         "errors" => Some(error_handling::get_examples()),
         "closures" => Some(closures::get_examples()),
         "iterators" => Some(iterators::get_examples()),
+        "threads" => Some(threads::get_examples()),
+        "async" => Some(async_prog::get_examples()),
         _ => None,
     }
 }
@@ -110,6 +124,8 @@ pub fn run_chapter_example(chapter: &str, example: &str) {
         "errors" => error_handling::run_example(example),
         "closures" => closures::run_example(example),
         "iterators" => iterators::run_example(example),
+        "threads" => threads::run_example(example),
+        "async" => async_prog::run_example(example),
         _ => println!("Chapter '{}' not found", chapter),
     }
 }

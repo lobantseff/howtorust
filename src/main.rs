@@ -1,13 +1,19 @@
 use colored::Colorize;
+use crossterm::{
+    cursor,
+    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
+    execute,
+    terminal::{self, ClearType},
+};
 use howrust::{get_chapter_examples, run_chapter_example, Difficulty, CHAPTERS};
 use std::env;
-use std::io::{self, Write};
+use std::io::{self, stdout, Write};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        print_usage();
+        interactive_mode();
         return;
     }
 
@@ -20,16 +26,182 @@ fn main() {
                 run_specific_example(chapter_name, &args[3]);
             } else {
                 // Show chapter: howrust <chapter>
-                show_chapter(chapter_name);
+                let mut history = Vec::new();
+                show_chapter(chapter_name, &mut history);
             }
         }
     }
 }
 
+fn read_line_with_history(history: &mut Vec<String>) -> io::Result<String> {
+    let mut input = String::new();
+    let mut history_index: Option<usize> = None;
+    let mut current_input = String::new();
+
+    terminal::enable_raw_mode()?;
+    let mut stdout = stdout();
+
+    loop {
+        if let Event::Key(KeyEvent {
+            code, modifiers, ..
+        }) = event::read()?
+        {
+            match code {
+                KeyCode::Enter => {
+                    terminal::disable_raw_mode()?;
+                    println!();
+                    if !input.trim().is_empty() && !history.contains(&input.trim().to_string()) {
+                        history.push(input.trim().to_string());
+                    }
+                    return Ok(input);
+                }
+                KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
+                    terminal::disable_raw_mode()?;
+                    println!();
+                    return Ok(String::from("quit"));
+                }
+                KeyCode::Char(c) => {
+                    input.insert(input.len(), c);
+                    print!("{}", c);
+                    stdout.flush()?;
+                    current_input = input.clone();
+                    history_index = None;
+                }
+                KeyCode::Backspace => {
+                    if !input.is_empty() {
+                        input.pop();
+                        execute!(stdout, cursor::MoveLeft(1), terminal::Clear(ClearType::UntilNewLine))?;
+                        current_input = input.clone();
+                        history_index = None;
+                    }
+                }
+                KeyCode::Up => {
+                    if !history.is_empty() {
+                        if history_index.is_none() {
+                            current_input = input.clone();
+                            history_index = Some(history.len() - 1);
+                        } else if let Some(idx) = history_index {
+                            if idx > 0 {
+                                history_index = Some(idx - 1);
+                            }
+                        }
+
+                        if let Some(idx) = history_index {
+                            // Clear current line
+                            execute!(
+                                stdout,
+                                cursor::MoveToColumn(0),
+                                terminal::Clear(ClearType::CurrentLine)
+                            )?;
+                            print!("{} ", "Choose:".green().bold());
+                            input = history[idx].clone();
+                            print!("{}", input);
+                            stdout.flush()?;
+                        }
+                    }
+                }
+                KeyCode::Down => {
+                    if let Some(idx) = history_index {
+                        if idx < history.len() - 1 {
+                            history_index = Some(idx + 1);
+                            execute!(
+                                stdout,
+                                cursor::MoveToColumn(0),
+                                terminal::Clear(ClearType::CurrentLine)
+                            )?;
+                            print!("{} ", "Choose:".green().bold());
+                            input = history[history_index.unwrap()].clone();
+                            print!("{}", input);
+                            stdout.flush()?;
+                        } else {
+                            history_index = None;
+                            execute!(
+                                stdout,
+                                cursor::MoveToColumn(0),
+                                terminal::Clear(ClearType::CurrentLine)
+                            )?;
+                            print!("{} ", "Choose:".green().bold());
+                            input = current_input.clone();
+                            print!("{}", input);
+                            stdout.flush()?;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+fn interactive_mode() {
+    let mut history: Vec<String> = Vec::new();
+
+    loop {
+        println!();
+        println!("{}", "HowRust - Interactive Rust Tutorial".bold().cyan());
+        println!("{}", "=".repeat(40).cyan());
+        println!();
+
+        for (idx, chapter) in CHAPTERS.iter().enumerate() {
+            println!(
+                "{}. {} - {}",
+                (idx + 1).to_string().yellow(),
+                chapter.name.green().bold(),
+                chapter.title
+            );
+        }
+
+        println!();
+        println!("{}", "Options:".bold());
+        println!("  [number] - Select a chapter");
+        println!("  {} - Show help", "help".cyan());
+        println!("  {} - Quit", "quit".cyan());
+        print!("\n{} ", "Choose:".green().bold());
+        io::stdout().flush().unwrap();
+
+        let input = match read_line_with_history(&mut history) {
+            Ok(line) => line,
+            Err(_) => {
+                println!("Error reading input");
+                continue;
+            }
+        };
+        let input = input.trim();
+
+        match input {
+            "quit" | "q" | "exit" => {
+                println!("Goodbye!");
+                break;
+            }
+            "help" | "h" => {
+                print_help();
+            }
+            _ => {
+                if let Ok(num) = input.parse::<usize>() {
+                    if num > 0 && num <= CHAPTERS.len() {
+                        let chapter = &CHAPTERS[num - 1];
+                        show_chapter(chapter.name, &mut history);
+                    } else {
+                        println!(
+                            "{} Please enter a number between 1 and {}",
+                            "Error:".red(),
+                            CHAPTERS.len()
+                        );
+                    }
+                } else {
+                    println!("{} Invalid input", "Error:".red());
+                }
+            }
+        }
+    }
+}
+
+#[allow(dead_code)]
 fn print_usage() {
     println!("{}", "HowRust - Interactive Rust Tutorial".bold().cyan());
     println!();
     println!("Usage:");
+    println!("  {}                       Start interactive mode", "howrust".green());
     println!("  {} <chapter>              Show examples for a chapter", "howrust".green());
     println!(
         "  {} --list                 List all available chapters",
@@ -42,7 +214,8 @@ fn print_usage() {
     println!("  {} --help                 Show detailed help", "howrust".green());
     println!();
     println!("Examples:");
-    println!("  {} ownership", "howrust".green());
+    println!("  {}                      # Interactive mode", "howrust".green());
+    println!("  {} ownership             # View ownership chapter", "howrust".green());
     println!("  {} traits --example basic_trait", "howrust".green());
     println!("  {} --list", "howrust".green());
 }
@@ -101,7 +274,7 @@ fn list_chapters() {
     );
 }
 
-fn show_chapter(chapter_name: &str) {
+fn show_chapter(chapter_name: &str, history: &mut Vec<String>) {
     let chapter = match howrust::find_chapter_by_name(chapter_name) {
         Some(ch) => ch,
         None => {
@@ -150,9 +323,12 @@ fn show_chapter(chapter_name: &str) {
         .filter(|(_, e)| e.difficulty == Difficulty::Advanced)
         .collect();
 
+    let mut display_num = 1;
+
     println!("{} ({} examples)", "Beginner".green().bold(), beginners.len());
-    for (idx, example) in beginners.iter() {
-        println!("  {}. {} - {}", idx + 1, example.name.cyan(), example.description);
+    for (_idx, example) in beginners.iter() {
+        println!("  {}. {} - {}", display_num, example.name.cyan(), example.description);
+        display_num += 1;
     }
     println!();
 
@@ -161,8 +337,9 @@ fn show_chapter(chapter_name: &str) {
         "Intermediate".yellow().bold(),
         intermediates.len()
     );
-    for (idx, example) in intermediates.iter() {
-        println!("  {}. {} - {}", idx + 1, example.name.cyan(), example.description);
+    for (_idx, example) in intermediates.iter() {
+        println!("  {}. {} - {}", display_num, example.name.cyan(), example.description);
+        display_num += 1;
     }
     println!();
 
@@ -171,31 +348,36 @@ fn show_chapter(chapter_name: &str) {
         "Advanced".red().bold(),
         advanced.len()
     );
-    for (idx, example) in advanced.iter() {
-        println!("  {}. {} - {}", idx + 1, example.name.cyan(), example.description);
+    for (_idx, example) in advanced.iter() {
+        println!("  {}. {} - {}", display_num, example.name.cyan(), example.description);
+        display_num += 1;
     }
     println!();
 
     // Interactive menu
-    interactive_menu(chapter_name, &examples);
+    interactive_menu(chapter_name, &examples, history);
 }
 
-fn interactive_menu(chapter_name: &str, examples: &[howrust::Example]) {
+fn interactive_menu(chapter_name: &str, examples: &[howrust::Example], history: &mut Vec<String>) {
     loop {
         println!("{}", "Options:".bold());
         println!("  [number] - View and run an example");
         println!("  {} - List all examples", "list".cyan());
-        println!("  {} - Quit", "quit".cyan());
+        println!("  {} - Back to chapters menu", "back".cyan());
         print!("\n{} ", "Choose:".green().bold());
         io::stdout().flush().unwrap();
 
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        let input = match read_line_with_history(history) {
+            Ok(line) => line,
+            Err(_) => {
+                println!("Error reading input");
+                continue;
+            }
+        };
         let input = input.trim();
 
         match input {
-            "quit" | "q" | "exit" => {
-                println!("Goodbye!");
+            "quit" | "q" | "exit" | "back" | "b" => {
                 break;
             }
             "list" | "l" => {
