@@ -50,7 +50,7 @@ pub mod ownership;
 
 **Usage:**
 ```rust
-use howrust::ownership;
+use howtorust::ownership;
 ownership::run_example("basic_ownership");
 ```
 
@@ -112,7 +112,7 @@ pub mod closures;  // Rust looks for closures/mod.rs
 
 **Usage:**
 ```rust
-use howrust::closures;
+use howtorust::closures;
 closures::run_example("basic_closure");  // Same API as single-file!
 ```
 

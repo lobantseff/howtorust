@@ -1,4 +1,4 @@
-# HowRust - Interactive Rust Tutorial & Cheatsheet
+# howtorust - Interactive Rust Tutorial & Cheatsheet
 
 An interactive command-line tool for learning Rust concepts through executable examples. Each chapter covers a fundamental Rust topic with examples progressing from beginner to advanced levels.
 
@@ -24,12 +24,12 @@ cd rust_traits
 cargo install --path .
 ```
 
-This will install the `howrust` binary to your Cargo bin directory (usually `~/.cargo/bin/`), which should already be in your PATH.
+This will install the `howtorust` binary to your Cargo bin directory (usually `~/.cargo/bin/`), which should already be in your PATH.
 
 ### Verify Installation
 
 ```bash
-howrust --help
+howtorust --help
 ```
 
 ## Usage
@@ -37,7 +37,7 @@ howrust --help
 ### List All Available Chapters
 
 ```bash
-howrust --list
+howtorust --list
 ```
 
 This displays all 8 chapters:
@@ -53,7 +53,7 @@ This displays all 8 chapters:
 ### View a Chapter
 
 ```bash
-howrust ownership
+howtorust ownership
 ```
 
 This will:
@@ -66,7 +66,7 @@ This will:
 ### Run a Specific Example
 
 ```bash
-howrust traits --example basic_trait
+howtorust traits --example basic_trait
 ```
 
 This directly displays and executes a specific example without the interactive menu.
@@ -75,17 +75,17 @@ This directly displays and executes a specific example without the interactive m
 
 ```bash
 # 1. See what's available
-howrust --list
+howtorust --list
 
 # 2. Explore ownership chapter
-howrust ownership
+howtorust ownership
 
 # 3. In the interactive menu, type a number (e.g., "1") to run an example
 # 4. Type "list" to see all examples
 # 5. Type "quit" to exit
 
 # Or run a specific example directly
-howrust closures --example move_keyword
+howtorust closures --example move_keyword
 ```
 
 ## Chapter Overview
@@ -190,14 +190,14 @@ cargo test
 
 ## Shell Completion
 
-To enable shell completion for the `howrust` command, you can set up tab completion for your shell.
+To enable shell completion for the `howtorust` command, you can set up tab completion for your shell.
 
 ### Bash
 
 Add to your `~/.bashrc` or `~/.bash_profile`:
 
 ```bash
-_howrust_completion() {
+_howtorust_completion() {
     local cur prev chapters
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
@@ -205,7 +205,7 @@ _howrust_completion() {
     chapters="ownership modules generics traits lifetimes errors closures iterators"
 
     case "${prev}" in
-        howrust)
+        howtorust)
             COMPREPLY=( $(compgen -W "--list --help ${chapters}" -- ${cur}) )
             return 0
             ;;
@@ -224,7 +224,7 @@ _howrust_completion() {
     esac
 }
 
-complete -F _howrust_completion howrust
+complete -F _howtorust_completion howtorust
 ```
 
 Then reload your shell:
@@ -237,7 +237,7 @@ source ~/.bashrc
 Add to your `~/.zshrc`:
 
 ```zsh
-_howrust() {
+_howtorust() {
     local -a chapters
     chapters=(
         'ownership:Understanding Ownership'
@@ -263,7 +263,7 @@ _howrust() {
     esac
 }
 
-compdef _howrust howrust
+compdef _howtorust howtorust
 ```
 
 Then reload your shell:
@@ -273,23 +273,23 @@ source ~/.zshrc
 
 ### Fish
 
-Create `~/.config/fish/completions/howrust.fish`:
+Create `~/.config/fish/completions/howtorust.fish`:
 
 ```fish
 # Chapter completions
-complete -c howrust -n "__fish_is_first_token" -a "ownership" -d "Understanding Ownership"
-complete -c howrust -n "__fish_is_first_token" -a "modules" -d "Packages, Crates, and Modules"
-complete -c howrust -n "__fish_is_first_token" -a "generics" -d "Generic Types"
-complete -c howrust -n "__fish_is_first_token" -a "traits" -d "Traits"
-complete -c howrust -n "__fish_is_first_token" -a "lifetimes" -d "Lifetimes"
-complete -c howrust -n "__fish_is_first_token" -a "errors" -d "Error Handling"
-complete -c howrust -n "__fish_is_first_token" -a "closures" -d "Closures"
-complete -c howrust -n "__fish_is_first_token" -a "iterators" -d "Iterators"
+complete -c howtorust -n "__fish_is_first_token" -a "ownership" -d "Understanding Ownership"
+complete -c howtorust -n "__fish_is_first_token" -a "modules" -d "Packages, Crates, and Modules"
+complete -c howtorust -n "__fish_is_first_token" -a "generics" -d "Generic Types"
+complete -c howtorust -n "__fish_is_first_token" -a "traits" -d "Traits"
+complete -c howtorust -n "__fish_is_first_token" -a "lifetimes" -d "Lifetimes"
+complete -c howtorust -n "__fish_is_first_token" -a "errors" -d "Error Handling"
+complete -c howtorust -n "__fish_is_first_token" -a "closures" -d "Closures"
+complete -c howtorust -n "__fish_is_first_token" -a "iterators" -d "Iterators"
 
 # Flag completions
-complete -c howrust -n "__fish_is_first_token" -l list -s l -d "List all chapters"
-complete -c howrust -n "__fish_is_first_token" -l help -s h -d "Show help message"
-complete -c howrust -l example -d "Run specific example"
+complete -c howtorust -n "__fish_is_first_token" -l list -s l -d "List all chapters"
+complete -c howtorust -n "__fish_is_first_token" -l help -s h -d "Show help message"
+complete -c howtorust -l example -d "Run specific example"
 ```
 
 Fish will automatically load this on next shell start.
@@ -299,9 +299,9 @@ Fish will automatically load this on next shell start.
 After setting up completion, try:
 
 ```bash
-howrust <TAB>        # Should show chapter names and flags
-howrust own<TAB>     # Should complete to "ownership"
-howrust ownership --<TAB>  # Should show --example flag
+howtorust <TAB>        # Should show chapter names and flags
+howtorust own<TAB>     # Should complete to "ownership"
+howtorust ownership --<TAB>  # Should show --example flag
 ```
 
 ## Dependencies

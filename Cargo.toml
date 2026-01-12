@@ -1,10 +1,10 @@
 [package]
-name = "howrust"
+name = "howtorust"
 version = "0.7.0"
 edition = "2021"
 
 [[bin]]
-name = "howrust"
+name = "howtorust"
 path = "src/main.rs"
 
 [dependencies]

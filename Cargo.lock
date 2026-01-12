@@ -155,7 +155,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "howrust"
+name = "howtorust"
 version = "0.7.0"
 dependencies = [
  "colored",

@@ -1,4 +1,4 @@
-# HowRust Project Summary
+# howtorust Project Summary
 
 ## Overview
 Successfully created a comprehensive Rust tutorial project with 8 chapters and 70+ examples demonstrating core Rust concepts.
@@ -38,9 +38,9 @@ Each chapter contains:
 Total: 75 examples across 8 chapters
 
 ### 3. Interactive CLI
-- `howrust --list` - Lists all chapters
-- `howrust <chapter>` - Interactive menu for a chapter
-- `howrust <chapter> --example <name>` - Run specific example
+- `howtorust --list` - Lists all chapters
+- `howtorust <chapter>` - Interactive menu for a chapter
+- `howtorust <chapter> --example <name>` - Run specific example
 - Syntax-highlighted code display
 - Color-coded output for better readability
 
@@ -153,17 +153,17 @@ cargo install --path .
 ### Basic Usage
 ```bash
 # List all chapters
-howrust --list
+howtorust --list
 
 # Interactive mode for a chapter
-howrust ownership
+howtorust ownership
 
 # Run specific example
-howrust traits --example basic_trait
+howtorust traits --example basic_trait
 ```
 
 ### Interactive Menu
-When running `howrust <chapter>`, users can:
+When running `howtorust <chapter>`, users can:
 - Enter a number to view/run an example
 - Type `list` to see all examples
 - Type `quit` to exit
@@ -212,7 +212,7 @@ This project successfully creates an interactive Rust tutorial that:
 - ✅ Demonstrates module organization
 - ✅ Provides interactive CLI interface
 - ✅ Includes comprehensive documentation
-- ✅ Can be installed as `howrust` binary
+- ✅ Can be installed as `howtorust` binary
 - ✅ Works as an interactive cheatsheet
 
 The project achieves all the specified goals and serves as both a learning tool for Rust concepts and a demonstration of proper Rust project organization.

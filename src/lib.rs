@@ -1,4 +1,4 @@
-// HowRust: Interactive Rust Tutorial and Cheatsheet
+// howtorust: Interactive Rust Tutorial and Cheatsheet
 // Main library exposing all tutorial modules
 
 pub mod async_prog;

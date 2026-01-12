@@ -5,7 +5,7 @@ use crossterm::{
     execute,
     terminal::{self, ClearType},
 };
-use howrust::{get_chapter_examples, run_chapter_example, Difficulty, CHAPTERS};
+use howtorust::{get_chapter_examples, run_chapter_example, Difficulty, CHAPTERS};
 use std::env;
 use std::io::{self, stdout, Write};
 
@@ -22,10 +22,10 @@ fn main() {
         "--help" | "-h" => print_help(),
         chapter_name => {
             if args.len() >= 4 && args[2] == "--example" {
-                // Run specific example: howrust <chapter> --example <name>
+                // Run specific example: howtorust <chapter> --example <name>
                 run_specific_example(chapter_name, &args[3]);
             } else {
-                // Show chapter: howrust <chapter>
+                // Show chapter: howtorust <chapter>
                 let mut history = Vec::new();
                 show_chapter(chapter_name, &mut history);
             }
@@ -142,7 +142,7 @@ fn interactive_mode() {
 
     loop {
         println!();
-        println!("{}", "HowRust - Interactive Rust Tutorial".bold().cyan());
+        println!("{}", "howtorust - Interactive Rust Tutorial".bold().cyan());
         println!("{}", "=".repeat(40).cyan());
         println!();
 
@@ -202,55 +202,55 @@ fn interactive_mode() {
 
 #[allow(dead_code)]
 fn print_usage() {
-    println!("{}", "HowRust - Interactive Rust Tutorial".bold().cyan());
+    println!("{}", "howtorust - Interactive Rust Tutorial".bold().cyan());
     println!();
     println!("Usage:");
     println!(
         "  {}                       Start interactive mode",
-        "howrust".green()
+        "howtorust".green()
     );
     println!(
         "  {} <chapter>              Show examples for a chapter",
-        "howrust".green()
+        "howtorust".green()
     );
     println!(
         "  {} --list                 List all available chapters",
-        "howrust".green()
+        "howtorust".green()
     );
     println!(
         "  {} <chapter> --example <name>  Run a specific example",
-        "howrust".green()
+        "howtorust".green()
     );
     println!(
         "  {} --help                 Show detailed help",
-        "howrust".green()
+        "howtorust".green()
     );
     println!();
     println!("Examples:");
     println!(
         "  {}                      # Interactive mode",
-        "howrust".green()
+        "howtorust".green()
     );
     println!(
         "  {} ownership             # View ownership chapter",
-        "howrust".green()
+        "howtorust".green()
     );
-    println!("  {} traits --example basic_trait", "howrust".green());
-    println!("  {} --list", "howrust".green());
+    println!("  {} traits --example basic_trait", "howtorust".green());
+    println!("  {} --list", "howtorust".green());
 }
 
 fn print_help() {
-    println!("{}", "HowRust - Interactive Rust Tutorial".bold().cyan());
+    println!("{}", "howtorust - Interactive Rust Tutorial".bold().cyan());
     println!();
     println!("{}", "DESCRIPTION:".bold());
     println!("  An interactive command-line tool for learning Rust concepts through");
     println!("  executable examples organized by topic.");
     println!();
     println!("{}", "USAGE:".bold());
-    println!("  howrust <chapter>                    Show and run examples for a chapter");
-    println!("  howrust --list                       List all available chapters");
-    println!("  howrust <chapter> --example <name>   Run a specific example");
-    println!("  howrust --help                       Show this help message");
+    println!("  howtorust <chapter>                    Show and run examples for a chapter");
+    println!("  howtorust --list                       List all available chapters");
+    println!("  howtorust <chapter> --example <name>   Run a specific example");
+    println!("  howtorust --help                       Show this help message");
     println!();
     println!("{}", "AVAILABLE CHAPTERS:".bold());
     for chapter in CHAPTERS {
@@ -262,13 +262,13 @@ fn print_help() {
     }
     println!();
     println!("{}", "EXAMPLES:".bold());
-    println!("  howrust ownership              # Interactive ownership tutorial");
-    println!("  howrust traits                 # Learn about traits");
-    println!("  howrust closures --example move_keyword");
+    println!("  howtorust ownership              # Interactive ownership tutorial");
+    println!("  howtorust traits                 # Learn about traits");
+    println!("  howtorust closures --example move_keyword");
     println!();
     println!("{}", "WORKFLOW:".bold());
-    println!("  1. List chapters: howrust --list");
-    println!("  2. Select a chapter: howrust <chapter>");
+    println!("  1. List chapters: howtorust --list");
+    println!("  2. Select a chapter: howtorust <chapter>");
     println!("  3. View and run examples interactively");
 }
 
@@ -287,11 +287,11 @@ fn list_chapters() {
         println!();
     }
 
-    println!("{}", "Run 'howrust <chapter>' to view examples.".dimmed());
+    println!("{}", "Run 'howtorust <chapter>' to view examples.".dimmed());
 }
 
 fn show_chapter(chapter_name: &str, history: &mut Vec<String>) {
-    let chapter = match howrust::find_chapter_by_name(chapter_name) {
+    let chapter = match howtorust::find_chapter_by_name(chapter_name) {
         Some(ch) => ch,
         None => {
             println!(
@@ -389,7 +389,11 @@ fn show_chapter(chapter_name: &str, history: &mut Vec<String>) {
     interactive_menu(chapter_name, &examples, history);
 }
 
-fn interactive_menu(chapter_name: &str, examples: &[howrust::Example], history: &mut Vec<String>) {
+fn interactive_menu(
+    chapter_name: &str,
+    examples: &[howtorust::Example],
+    history: &mut Vec<String>,
+) {
     loop {
         println!("{}", "Options:".bold());
         println!("  [number] - View and run an example");
@@ -444,7 +448,7 @@ fn interactive_menu(chapter_name: &str, examples: &[howrust::Example], history: 
     }
 }
 
-fn display_and_run_example(chapter_name: &str, example: &howrust::Example) {
+fn display_and_run_example(chapter_name: &str, example: &howtorust::Example) {
     println!();
     println!("{}", "=".repeat(60).cyan());
     println!(

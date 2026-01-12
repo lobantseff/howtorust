@@ -89,7 +89,7 @@ world. Good module structure makes codebases navigable and maintainable."#,
             name: "nested_modules",
             description: "Nested module paths",
             code: r#"// Using the garden module
-use howrust::packages_crates_modules::garden::vegetables::Carrot;
+use howtorust::packages_crates_modules::garden::vegetables::Carrot;
 
 let carrot = Carrot::new(15);
 println!("Carrot length: {} cm", carrot.length_cm);"#,
@@ -122,7 +122,7 @@ how to map them to files.
 Path Resolution: Two types of paths work identically after compilation:
   • Absolute: use crate::garden::vegetables::Carrot (from crate root)
   • Relative: use super::vegetables::Carrot (from current module)
-  • External: use howrust::garden::vegetables::Carrot (different crate)
+  • External: use howtorust::garden::vegetables::Carrot (different crate)
 All resolve at compile time - zero runtime cost for path lookup.
 
 Privacy Cascading: Every level must be pub for external access. If

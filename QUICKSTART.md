@@ -7,18 +7,18 @@ cd rust_traits
 cargo install --path .
 ```
 
-The `howrust` binary will be installed to `~/.cargo/bin/` (make sure this is in your PATH).
+The `howtorust` binary will be installed to `~/.cargo/bin/` (make sure this is in your PATH).
 
 ## Basic Commands
 
 ### See all available chapters
 ```bash
-howrust --list
+howtorust --list
 ```
 
 ### Interactive learning mode
 ```bash
-howrust ownership
+howtorust ownership
 ```
 Then:
 - Type a number (e.g., `1`, `2`) to view and run that example
@@ -27,21 +27,21 @@ Then:
 
 ### Run a specific example directly
 ```bash
-howrust traits --example basic_trait
-howrust closures --example move_keyword
-howrust iterators --example lazy_evaluation
+howtorust traits --example basic_trait
+howtorust closures --example move_keyword
+howtorust iterators --example lazy_evaluation
 ```
 
 ### Get help
 ```bash
-howrust --help
+howtorust --help
 ```
 
 ## Example Session
 
 ```bash
 # 1. List all topics
-$ howrust --list
+$ howtorust --list
 
 Available Chapters:
 1. ownership - Understanding Ownership
@@ -50,7 +50,7 @@ Available Chapters:
 ...
 
 # 2. Learn about traits
-$ howrust traits
+$ howtorust traits
 
 Traits
 ======
@@ -66,7 +66,7 @@ Choose: 1
 # Shows code and runs it
 
 # 3. Run specific example
-$ howrust ownership --example borrowing_mutable
+$ howtorust ownership --example borrowing_mutable
 
 # Shows the code with syntax highlighting and output
 ```
@@ -74,14 +74,14 @@ $ howrust ownership --example borrowing_mutable
 ## Learning Path
 
 Recommended order:
-1. `howrust ownership` - Foundation of Rust
-2. `howrust modules` - Code organization
-3. `howrust errors` - Essential for real programs
-4. `howrust traits` - Core abstraction
-5. `howrust generics` - Flexible code
-6. `howrust lifetimes` - Advanced ownership
-7. `howrust closures` - Functional programming
-8. `howrust iterators` - Efficient data processing
+1. `howtorust ownership` - Foundation of Rust
+2. `howtorust modules` - Code organization
+3. `howtorust errors` - Essential for real programs
+4. `howtorust traits` - Core abstraction
+5. `howtorust generics` - Flexible code
+6. `howtorust lifetimes` - Advanced ownership
+7. `howtorust closures` - Functional programming
+8. `howtorust iterators` - Efficient data processing
 
 ## Tips
 
@@ -106,28 +106,28 @@ Recommended order:
 
 ```bash
 # Ownership basics
-howrust ownership --example basic_ownership
+howtorust ownership --example basic_ownership
 
 # Module organization
-howrust modules --example nested_modules
+howtorust modules --example nested_modules
 
 # Generic functions
-howrust generics --example generic_function
+howtorust generics --example generic_function
 
 # Trait objects
-howrust traits --example trait_objects
+howtorust traits --example trait_objects
 
 # Lifetime annotations
-howrust lifetimes --example struct_lifetimes
+howtorust lifetimes --example struct_lifetimes
 
 # Error handling with ?
-howrust errors --example question_mark_operator
+howtorust errors --example question_mark_operator
 
 # Closure capturing
-howrust closures --example capturing_environment
+howtorust closures --example capturing_environment
 
 # Iterator chains
-howrust iterators --example chaining_iterators
+howtorust iterators --example chaining_iterators
 ```
 
 Enjoy learning Rust! 🦀

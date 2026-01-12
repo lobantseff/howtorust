@@ -1,10 +1,10 @@
 # Commentary Guide
 
-This document explains the commentary feature added to all examples in HowRust.
+This document explains the commentary feature added to all examples in howtorust.
 
 ## What is Commentary?
 
-Every example in HowRust now includes comprehensive commentary that appears **after** the code output. Commentary provides educational context, Rust Book references, and practical insights.
+Every example in howtorust now includes comprehensive commentary that appears **after** the code output. Commentary provides educational context, Rust Book references, and practical insights.
 
 ## Commentary Structure
 

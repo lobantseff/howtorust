@@ -122,7 +122,7 @@ This is different from shallow copying...
 
 **View example with commentary:**
 ```bash
-howrust ownership --example basic_ownership
+howtorust ownership --example basic_ownership
 ```
 
 **Output shows:**
@@ -132,7 +132,7 @@ howrust ownership --example basic_ownership
 
 **Interactive mode:**
 ```bash
-howrust closures
+howtorust closures
 # Select example by number
 # See code, run it, read commentary
 ```
@@ -175,9 +175,9 @@ All 75 examples now have comprehensive commentary:
 All changes tested and verified:
 - ✅ `cargo build --release` - Compiles successfully
 - ✅ `cargo install --path .` - Installs correctly
-- ✅ `howrust --list` - Shows all chapters
-- ✅ `howrust ownership` - Interactive mode works
-- ✅ `howrust traits --example basic_trait` - Commentary displays correctly
+- ✅ `howtorust --list` - Shows all chapters
+- ✅ `howtorust ownership` - Interactive mode works
+- ✅ `howtorust traits --example basic_trait` - Commentary displays correctly
 - ✅ All 75 examples execute and show commentary
 
 ## Documentation Updates

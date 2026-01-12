@@ -36,9 +36,9 @@
 - Interactive CLI with syntax-highlighted code display
 - Single binary installation via `cargo install`
 - Support for three usage modes:
-  - `howrust --list` - Browse chapters
-  - `howrust <chapter>` - Interactive menu
-  - `howrust <chapter> --example <name>` - Direct execution
+  - `howtorust --list` - Browse chapters
+  - `howtorust <chapter>` - Interactive menu
+  - `howtorust <chapter> --example <name>` - Direct execution
 
 ### Chapters
 1. Understanding Ownership (9 examples)

@@ -1,4 +1,4 @@
-# HowRust - Final Status Report
+# howtorust - Final Status Report
 
 ## ✅ All Requirements Complete
 
@@ -81,21 +81,21 @@ Commentary:
 
 ### View All Chapters
 ```bash
-howrust --list
+howtorust --list
 ```
 
 ### Interactive Chapter Mode
 ```bash
-howrust ownership
+howtorust ownership
 # Browse examples, select by number
 # See code, output, and commentary
 ```
 
 ### Direct Example Execution
 ```bash
-howrust traits --example basic_trait
-howrust closures --example move_keyword
-howrust iterators --example lazy_evaluation
+howtorust traits --example basic_trait
+howtorust closures --example move_keyword
+howtorust iterators --example lazy_evaluation
 ```
 
 ## Technical Achievements
@@ -151,7 +151,7 @@ cargo build --release
 cargo install --path .
 
 # Test example with commentary
-howrust ownership --example basic_ownership
+howtorust ownership --example basic_ownership
 
 # Verify directory structure
 find src -type d | sort
@@ -162,7 +162,7 @@ grep -r "commentary:" src/*/examples.rs | wc -l
 
 ## Summary
 
-The HowRust project is now complete with:
+The howtorust project is now complete with:
 
 🎯 **All 3 requirements fulfilled**:
 1. Commentary section after output ✅
