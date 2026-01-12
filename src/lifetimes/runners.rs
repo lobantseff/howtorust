@@ -121,10 +121,7 @@ fn method_lifetimes() {
     let novel = String::from("Once upon a time...");
     let excerpt = ImportantExcerpt { part: &novel };
     println!("Level: {}", excerpt.level());
-    println!(
-        "Part: {}",
-        excerpt.announce_and_return_part("Starting")
-    );
+    println!("Part: {}", excerpt.announce_and_return_part("Starting"));
 }
 
 fn static_lifetime() {

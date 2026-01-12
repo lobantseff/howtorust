@@ -70,7 +70,11 @@ fn read_line_with_history(history: &mut Vec<String>) -> io::Result<String> {
                 KeyCode::Backspace => {
                     if !input.is_empty() {
                         input.pop();
-                        execute!(stdout, cursor::MoveLeft(1), terminal::Clear(ClearType::UntilNewLine))?;
+                        execute!(
+                            stdout,
+                            cursor::MoveLeft(1),
+                            terminal::Clear(ClearType::UntilNewLine)
+                        )?;
                         current_input = input.clone();
                         history_index = None;
                     }
@@ -201,8 +205,14 @@ fn print_usage() {
     println!("{}", "HowRust - Interactive Rust Tutorial".bold().cyan());
     println!();
     println!("Usage:");
-    println!("  {}                       Start interactive mode", "howrust".green());
-    println!("  {} <chapter>              Show examples for a chapter", "howrust".green());
+    println!(
+        "  {}                       Start interactive mode",
+        "howrust".green()
+    );
+    println!(
+        "  {} <chapter>              Show examples for a chapter",
+        "howrust".green()
+    );
     println!(
         "  {} --list                 List all available chapters",
         "howrust".green()
@@ -211,11 +221,20 @@ fn print_usage() {
         "  {} <chapter> --example <name>  Run a specific example",
         "howrust".green()
     );
-    println!("  {} --help                 Show detailed help", "howrust".green());
+    println!(
+        "  {} --help                 Show detailed help",
+        "howrust".green()
+    );
     println!();
     println!("Examples:");
-    println!("  {}                      # Interactive mode", "howrust".green());
-    println!("  {} ownership             # View ownership chapter", "howrust".green());
+    println!(
+        "  {}                      # Interactive mode",
+        "howrust".green()
+    );
+    println!(
+        "  {} ownership             # View ownership chapter",
+        "howrust".green()
+    );
     println!("  {} traits --example basic_trait", "howrust".green());
     println!("  {} --list", "howrust".green());
 }
@@ -268,10 +287,7 @@ fn list_chapters() {
         println!();
     }
 
-    println!(
-        "{}",
-        "Run 'howrust <chapter>' to view examples.".dimmed()
-    );
+    println!("{}", "Run 'howrust <chapter>' to view examples.".dimmed());
 }
 
 fn show_chapter(chapter_name: &str, history: &mut Vec<String>) {
@@ -325,9 +341,18 @@ fn show_chapter(chapter_name: &str, history: &mut Vec<String>) {
 
     let mut display_num = 1;
 
-    println!("{} ({} examples)", "Beginner".green().bold(), beginners.len());
+    println!(
+        "{} ({} examples)",
+        "Beginner".green().bold(),
+        beginners.len()
+    );
     for (_idx, example) in beginners.iter() {
-        println!("  {}. {} - {}", display_num, example.name.cyan(), example.description);
+        println!(
+            "  {}. {} - {}",
+            display_num,
+            example.name.cyan(),
+            example.description
+        );
         display_num += 1;
     }
     println!();
@@ -338,18 +363,24 @@ fn show_chapter(chapter_name: &str, history: &mut Vec<String>) {
         intermediates.len()
     );
     for (_idx, example) in intermediates.iter() {
-        println!("  {}. {} - {}", display_num, example.name.cyan(), example.description);
+        println!(
+            "  {}. {} - {}",
+            display_num,
+            example.name.cyan(),
+            example.description
+        );
         display_num += 1;
     }
     println!();
 
-    println!(
-        "{} ({} examples)",
-        "Advanced".red().bold(),
-        advanced.len()
-    );
+    println!("{} ({} examples)", "Advanced".red().bold(), advanced.len());
     for (_idx, example) in advanced.iter() {
-        println!("  {}. {} - {}", display_num, example.name.cyan(), example.description);
+        println!(
+            "  {}. {} - {}",
+            display_num,
+            example.name.cyan(),
+            example.description
+        );
         display_num += 1;
     }
     println!();
@@ -430,6 +461,14 @@ fn display_and_run_example(chapter_name: &str, example: &howrust::Example) {
     println!("{}", "=".repeat(60).cyan());
     println!();
 
+    println!("{}", "Commentary:".bold().blue());
+    println!("{}", "-".repeat(60).dimmed());
+    for line in example.commentary.lines() {
+        println!("{}", line);
+    }
+    println!("{}", "-".repeat(60).dimmed());
+    println!();
+
     println!("{}", "Code:".bold().green());
     println!("{}", "-".repeat(60).dimmed());
     print_code_with_syntax_highlighting(example.code);
@@ -439,14 +478,6 @@ fn display_and_run_example(chapter_name: &str, example: &howrust::Example) {
     println!("{}", "Output:".bold().magenta());
     println!("{}", "-".repeat(60).dimmed());
     run_chapter_example(chapter_name, example.name);
-    println!("{}", "-".repeat(60).dimmed());
-    println!();
-
-    println!("{}", "Commentary:".bold().blue());
-    println!("{}", "-".repeat(60).dimmed());
-    for line in example.commentary.lines() {
-        println!("{}", line);
-    }
     println!("{}", "-".repeat(60).dimmed());
     println!();
 }
@@ -555,38 +586,23 @@ fn print_code_with_syntax_highlighting(code: &str) {
 fn colorize_word(word: &str) -> String {
     match word {
         // Keywords - Blue
-        "fn" | "pub" | "struct" | "enum" | "impl" | "trait" | "async" | "await"
-        | "type" | "where" | "unsafe" | "extern" | "dyn" => {
-            word.blue().to_string()
-        }
+        "fn" | "pub" | "struct" | "enum" | "impl" | "trait" | "async" | "await" | "type"
+        | "where" | "unsafe" | "extern" | "dyn" => word.blue().to_string(),
         // Variable declarations - Green
-        "let" | "mut" | "const" | "static" | "ref" => {
-            word.green().to_string()
-        }
+        "let" | "mut" | "const" | "static" | "ref" => word.green().to_string(),
         // Module system - Magenta
-        "use" | "mod" | "crate" | "self" | "super" | "as" | "in" => {
-            word.magenta().to_string()
-        }
+        "use" | "mod" | "crate" | "self" | "super" | "as" | "in" => word.magenta().to_string(),
         // Control flow - Yellow
-        "if" | "else" | "match" | "loop" | "while" | "for" | "return"
-        | "break" | "continue" | "yield" => {
-            word.yellow().to_string()
-        }
+        "if" | "else" | "match" | "loop" | "while" | "for" | "return" | "break" | "continue"
+        | "yield" => word.yellow().to_string(),
         // Boolean and special literals - Cyan
-        "true" | "false" | "None" | "Some" | "Ok" | "Err" => {
-            word.cyan().to_string()
-        }
+        "true" | "false" | "None" | "Some" | "Ok" | "Err" => word.cyan().to_string(),
         // Common types - Bright Blue
-        "String" | "Vec" | "Option" | "Result" | "Box" | "Rc" | "Arc"
-        | "HashMap" | "HashSet" | "i8" | "i16" | "i32" | "i64" | "i128"
-        | "u8" | "u16" | "u32" | "u64" | "u128" | "f32" | "f64"
-        | "bool" | "char" | "str" | "usize" | "isize" => {
-            word.bright_blue().to_string()
-        }
+        "String" | "Vec" | "Option" | "Result" | "Box" | "Rc" | "Arc" | "HashMap" | "HashSet"
+        | "i8" | "i16" | "i32" | "i64" | "i128" | "u8" | "u16" | "u32" | "u64" | "u128" | "f32"
+        | "f64" | "bool" | "char" | "str" | "usize" | "isize" => word.bright_blue().to_string(),
         // Move semantics - Bright Yellow
-        "move" | "Copy" | "Clone" | "Drop" => {
-            word.bright_yellow().to_string()
-        }
+        "move" | "Copy" | "Clone" | "Drop" => word.bright_yellow().to_string(),
         _ => {
             // Check if it's a number
             if word.chars().all(|c| c.is_numeric() || c == '.' || c == '_') {

@@ -15,13 +15,74 @@ pub fn get_examples() -> Vec<Example> {
 }
 
 sound::guitar();"#,
-            commentary: r#"Modules are Rust's primary code organization mechanism, creating namespaces that group related functionality together. The mod keyword declares a module, and pub makes items visible outside their parent scope. By default, everything in Rust is private to its parent module - this privacy-by-default encourages encapsulation and explicit API design. You access module items using the :: path separator, like sound::guitar(), which clearly shows where functionality lives in your code's namespace hierarchy.
+            commentary: r#"📚 INTRODUCTION
+Modules (mod) are Rust's primary code organization tool, creating
+namespaces that group related functionality. The mod keyword declares
+a module, pub makes items visible outside it, and :: accesses items
+(sound::guitar()). By default, everything is private to its parent
+module - this privacy-by-default forces explicit, intentional API design.
+Modules form a tree rooted at the crate entry point (lib.rs or main.rs).
 
-Modules form a tree structure rooted at the crate's entry point (main.rs for binaries, lib.rs for libraries). Each module can contain functions, structs, enums, constants, traits, and even nested modules. The module system is purely a compile-time construct - it doesn't affect runtime performance or memory layout. The compiler uses modules to organize symbol names and enforce visibility rules, but after compilation, everything is just machine code. This makes Rust's module system a true zero-cost abstraction.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+Code organization problems without modules:
+• Name collisions: multiple items with same name → conflict
+• No encapsulation: everything accessible → tight coupling
+• Unclear structure: flat code → hard to navigate
+• No API boundary: can't separate public from private
 
-Privacy rules operate at module boundaries, not file boundaries. Code within a module can access all items in that module and its child modules, regardless of pub annotations. Only code outside the module needs pub to cross the module boundary. This creates clear encapsulation: implementation details stay hidden inside modules, while the public API is explicitly marked. The privacy system prevents you from accidentally depending on internal implementation details that might change.
+Modules solve all this:
+• Namespaces prevent name collisions
+• Privacy-by-default enables encapsulation
+• Hierarchical structure matches mental models
+• Public/private creates clear API boundaries
 
-In practice, modules help you organize code logically, separate concerns, control API surface area, and avoid name collisions. Small projects might have just a few modules in a single file, while large projects organize modules across many files and directories. The module system scales from simple programs to massive codebases. When designing modules, think about what belongs together conceptually, what should be public API versus implementation details, and how to make your code's structure discoverable to other developers."#,
+Unlike languages with package-level or class-based organization,
+Rust's modules are language-level, compile-time constructs with
+zero runtime cost.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+Zero-Cost Abstraction: Modules are purely compile-time. The compiler
+  uses them for namespacing and privacy checking, then generates plain
+  machine code. No runtime overhead for module boundaries.
+
+Privacy at Module Boundaries: Everything is private by default. Code
+  inside a module can access everything in that module and descendants,
+  regardless of pub. Only external code needs pub to cross boundaries.
+
+Module Tree Structure: Modules form a tree:
+  crate (root)
+  ├── module_a
+  │   ├── submodule_a1
+  │   └── submodule_a2
+  └── module_b
+
+Paths: Access via :: (like sound::guitar). Absolute paths start with
+  crate:: (crate::sound::guitar). Relative paths use super:: (parent)
+  or self:: (current).
+
+File Organization: Modules can be inline (mod foo { }), in foo.rs,
+  or in foo/mod.rs. The compiler looks for these locations automatically.
+
+💼 WHERE IT'S MOST USED
+• Code organization: grouping related functions, types, constants
+• API design: separating public interface from private implementation
+• Name collision prevention: multiple items with same name in different modules
+• Testing: mod tests for unit tests in same file
+• Feature organization: payment, auth, database as separate modules
+
+Common patterns:
+• One file per module for large modules
+• Inline modules for small helper code
+• Private submodules for implementation details
+
+✅ TAKEAWAY
+Modules are Rust's fundamental organization unit - namespaces with
+privacy boundaries. Use them to structure code logically, hide
+implementation details, and prevent name collisions. Everything is
+private by default, forcing explicit public APIs. Modules are zero-cost
+at runtime - pure compile-time constructs. Think of modules as boxes
+that contain related code and control what's visible to the outside
+world. Good module structure makes codebases navigable and maintainable."#,
             difficulty: Difficulty::Beginner,
         },
         Example {
@@ -32,13 +93,78 @@ use howrust::packages_crates_modules::garden::vegetables::Carrot;
 
 let carrot = Carrot::new(15);
 println!("Carrot length: {} cm", carrot.length_cm);"#,
-            commentary: r#"Nested modules create hierarchical organization, letting you structure code into logical categories and subcategories. Access nested items using the :: path separator, chaining module names like packages_crates_modules::garden::vegetables::Carrot. Each level in the path must be marked pub for external access - if any intermediate module is private, the entire path becomes inaccessible from outside. This forces you to make conscious decisions about your API boundaries at every level of nesting.
+            commentary: r#"📚 INTRODUCTION
+Nested modules create hierarchical organization through multiple levels
+of module nesting (module::submodule::item). Access nested items using
+:: path separators, chaining module names like garden::vegetables::Carrot.
+Each level in the path must be marked pub for external access - if any
+intermediate module is private, the entire path breaks. This creates a
+tree structure for organizing code into categories and subcategories.
 
-Paths in Rust come in two forms: absolute paths starting from the crate root (use crate::module::item), and relative paths starting from the current module (use super::sibling or self::child). Absolute paths are more explicit and refactor-proof, while relative paths can be more convenient within closely related modules. External crates are accessed by name, as in this example where howrust is the crate name. The compiler resolves these paths at compile time, so there's no runtime lookup cost.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+Flat organization problems without nesting:
+• Name collisions: utilities.rs becomes dumping ground → conflicts
+• No categorization: everything at same level → poor discoverability
+• Unclear relationships: can't express "X is part of Y"
+• Large files: everything in one module → thousands of lines
 
-Nested modules map naturally to filesystem hierarchies - a module can be defined in either module_name.rs or module_name/mod.rs with child modules in the directory. This file-based organization scales to large projects with thousands of modules. However, the module structure is independent of file structure - you can define multiple modules in one file, or split a logical module across files. The module tree defines namespacing and visibility, while the filesystem just determines where code is written.
+Nested modules solve this:
+• Hierarchical structure matches mental models (garden > vegetables > Carrot)
+• Logical grouping with clear parent-child relationships
+• Scalable organization for projects with thousands of items
+• Each nesting level creates an encapsulation boundary
 
-In practice, nested modules help you organize large codebases into understandable chunks. Group related functionality together, separate stable public APIs from volatile internal implementation, and create clear dependency boundaries. Well-organized module hierarchies make code navigable and maintainable. Common patterns include organizing by feature (user, database, network), by layer (models, views, controllers), or by domain concepts. The key is consistency - pick an organization strategy and stick to it throughout your project."#,
+Unlike Java packages (reflect directory structure) or Python modules
+(always map to files), Rust modules are purely logical - you choose
+how to map them to files.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+Path Resolution: Two types of paths work identically after compilation:
+  • Absolute: use crate::garden::vegetables::Carrot (from crate root)
+  • Relative: use super::vegetables::Carrot (from current module)
+  • External: use howrust::garden::vegetables::Carrot (different crate)
+All resolve at compile time - zero runtime cost for path lookup.
+
+Privacy Cascading: Every level must be pub for external access. If
+  garden is pub but vegetables is private, garden::vegetables::Carrot
+  is inaccessible from outside garden. This creates natural API boundaries
+  at each nesting level.
+
+File Mapping Options: A module can exist in multiple forms:
+  1. Inline: mod vegetables { pub struct Carrot; }
+  2. Adjacent file: vegetables.rs
+  3. Directory: vegetables/mod.rs (with submodules in vegetables/*.rs)
+  The compiler checks these locations in order. Choose based on size
+  and complexity - inline for small modules, files for medium, directories
+  for modules with submodules.
+
+Module Tree Independence: The module hierarchy is separate from file
+  structure. You can define 10 modules in one file, or split one logical
+  module across files with re-exports. The module tree defines namespacing;
+  files are just storage.
+
+💼 WHERE IT'S MOST USED
+• Feature organization: user::profile, user::auth, user::session
+• Layer separation: models::user, views::user, controllers::user
+• Standard library: std::collections::hash_map::HashMap
+• Domain grouping: shop::products::electronics::Laptop
+• API versioning: api::v1::endpoints, api::v2::endpoints
+
+Common patterns:
+• Organize by feature for small/medium projects (auth, database, api)
+• Organize by layer for large projects (presentation, business, data)
+• Keep related code together at each nesting level
+• Use depth sparingly - 3-4 levels max for readability
+
+✅ TAKEAWAY
+Nested modules organize code hierarchically with parent::child::item
+paths. Each level must be pub for external access, creating natural
+API boundaries at every nesting level. Paths resolve at compile time
+with zero runtime cost. Modules are logical constructs - you choose
+how to map them to files (inline, .rs file, or directory). Use nesting
+to group related functionality, with 2-3 levels being the sweet spot
+for most projects. Pick an organization strategy (by feature, by layer,
+by domain) and apply it consistently throughout your codebase."#,
             difficulty: Difficulty::Beginner,
         },
         // Intermediate examples
@@ -51,13 +177,77 @@ let mut scores = HashMap::new();
 scores.insert("Blue", 10);
 scores.insert("Red", 50);
 println!("Scores: {:?}", scores);"#,
-            commentary: r#"The use keyword brings paths into scope, creating local bindings that eliminate repetitive fully-qualified names. Once you write use std::collections::HashMap, you can refer to the type as just HashMap throughout that scope. This is similar to import in Python or Java but more flexible - use works at any scope level (module, function, even block), and the bindings follow Rust's normal shadowing rules. You can use paths from any visible module, including the standard library, external crates, and your own code.
+            commentary: r#"📚 INTRODUCTION
+The use keyword brings paths into scope, creating local bindings that
+eliminate repetitive fully-qualified names. Write use std::collections::HashMap
+once, then use HashMap instead of the full path throughout that scope.
+Works at any scope level - module-wide, function-local, even within
+a block. These bindings follow normal shadowing rules and can be
+renamed with as.
 
-Rust has idiomatic conventions for what to import. For structs, enums, and traits, import the type itself (use std::collections::HashMap). For functions, import the parent module (use std::collections; then call collections::HashMap::new). This convention makes it clearer where functions come from when reading code - you see the module name at the call site. However, it's just convention; the compiler doesn't enforce it. Some teams or projects establish their own conventions based on readability and preferences.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+Problems without use:
+• Verbosity: std::collections::HashMap::new() repeatedly → visual clutter
+• Reduced readability: long paths obscure business logic
+• Refactoring friction: changing module paths requires updates everywhere
+• Type signatures become unwieldy: Option<std::collections::HashMap<String, Vec<MyLongTypeName>>>
 
-The use statement is purely a convenience feature - it doesn't change visibility or bring items into your module's public API (unless combined with pub use). It's a compile-time name resolution mechanism that expands to full paths during compilation. This means there's zero runtime cost for using imports. The compiler simply replaces each usage with the full path internally. You can have as many use statements as you want without affecting binary size or performance.
+The use keyword solves this:
+• Concise names: HashMap instead of std::collections::HashMap
+• Clearer code: focus on logic, not navigation
+• Single point of change: update one use statement to change path
+• Readable signatures: Option<HashMap<String, Vec<MyLongTypeName>>>
 
-In practice, use statements make code more readable by reducing visual clutter from long paths. They're especially valuable when working with deeply nested modules or external crates with long names. Common pattern: group related imports at the top of files, keep them alphabetically sorted, and remove unused imports (the compiler will warn about these). Modern IDEs and tools like rustfmt can automatically organize imports for consistency across your codebase."#,
+Unlike imports in languages where they affect runtime behavior (Python's
+import can execute code), Rust's use is purely compile-time name resolution
+with zero runtime impact.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+Zero-Cost Abstraction: use is a compile-time convenience. The compiler
+  expands each usage to the full path internally, then generates identical
+  machine code whether you use imports or not. No lookup tables, no
+  runtime resolution, no performance impact.
+
+Scope-Level Flexibility: use works anywhere:
+  • Module level: visible to entire module
+  • Function level: visible only in that function
+  • Block level: use std::fs::File; in an if block
+  This lets you minimize scope of imports for clarity.
+
+Idiomatic Conventions (not enforced by compiler):
+  • Types (structs, enums, traits): import the type
+    use std::collections::HashMap; then HashMap::new()
+  • Functions: import parent module
+    use std::collections; then collections::hash_map()
+  • Methods: always on the type, so import the type
+  Reason: seeing the module name at function call sites aids readability.
+
+Visibility vs Import: use doesn't change visibility. A private item
+  can be imported via use but remains inaccessible outside its module.
+  Only pub use re-exports items as part of public API.
+
+💼 WHERE IT'S MOST USED
+• External dependencies: use serde::{Serialize, Deserialize};
+• Standard library: use std::fs::File;
+• Deep module paths: use crate::database::models::user::User;
+• Multiple items: use std::io::{Read, Write, BufReader};
+• Type-heavy code: use std::collections::{HashMap, HashSet, BTreeMap};
+
+Common patterns:
+• Group imports at file top, organized by external/std/crate
+• Alphabetize within groups for consistency (rustfmt does this)
+• Use IDE quick-fixes to auto-import (saves manual typing)
+• Remove unused imports (compiler warns, clippy errors)
+
+✅ TAKEAWAY
+The use keyword creates local name bindings for paths, eliminating
+repetitive fully-qualified names with zero runtime cost. Import types
+directly (use HashMap), but import parent modules for functions (use
+collections, then collections::func). Works at any scope level for
+flexibility. Purely a compile-time convenience - doesn't affect visibility,
+binary size, or performance. Use liberally to improve readability, and
+let tools like rustfmt organize imports automatically. The goal is clear
+code where the important logic stands out, not module paths."#,
             difficulty: Difficulty::Intermediate,
         },
         Example {
@@ -68,13 +258,75 @@ In practice, use statements make code more readable by reducing visual clutter f
 let mut data = Map::new();
 data.insert("key", "value");
 println!("{:?}", data);"#,
-            commentary: r#"The as keyword renames imports to avoid name conflicts or provide more convenient names in the current scope. When you write use std::collections::HashMap as Map, you're creating a local alias that only exists in that scope - the original name HashMap is not automatically available unless separately imported. This is particularly useful when two crates define types with the same name, like std::io::Result and a custom Result type, allowing you to import both as IoResult and AppResult without collision.
+            commentary: r#"📚 INTRODUCTION
+The as keyword renames imports within the current scope, creating a local
+alias for any item (type, function, module, trait, constant). Write
+use std::collections::HashMap as Map to use Map instead of HashMap
+in that scope. The original name is not automatically available unless
+separately imported. Renamed bindings follow normal scoping rules and
+work at any scope level (module, function, block).
 
-Renaming works with any item - types, functions, modules, traits, even entire paths. You can rename modules to shorter names for convenience (use very_long_module_name::deeply::nested as short), making subsequent code more readable. The renamed binding follows normal scoping rules - it's visible only within the scope where the use statement appears. If you rename an item in a module, it doesn't affect how that item is referenced elsewhere in your codebase.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+Name conflict problems without renaming:
+• Type collision: two crates export Result → can't import both
+• Function shadowing: local name conflicts with imported name
+• Generic names: importing Error from multiple sources → ambiguous
+• Migration pain: can't run old and new APIs side-by-side
 
-The ability to rename is crucial for working with multiple versions of the same crate or similar APIs from different sources. For example, if you're migrating from one database library to another, you might temporarily import both with different names while gradually updating your code. This flexibility makes refactoring and library migration much less painful than in languages where name conflicts require more invasive changes.
+The as keyword solves this:
+• Import conflicting types: use std::io::Result as IoResult; use crate::Result as AppResult;
+• Avoid shadowing: use std::fs::read as read_file; (when you have local read)
+• Disambiguate: use db::User as DbUser; use api::User as ApiUser;
+• Enable gradual migration: use old_lib::Api as OldApi; use new_lib::Api as NewApi;
 
-Common pattern: Use short, clear names that make sense in context. If you're working extensively with a specific module, renaming it to something brief can significantly improve readability. However, don't overuse renaming - having too many aliases can make code confusing for other developers. Reserve it for resolving actual conflicts or genuinely improving clarity. When in doubt, use the original name unless there's a specific reason to change it."#,
+Unlike some languages that require complex import mechanics, Rust's
+as provides a simple, explicit solution to all naming conflicts.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+Scope Locality: Renaming is local to the scope where the use statement
+  appears. Other modules, other files, even other scopes in the same file
+  are unaffected. This means renaming is completely safe - you can't
+  accidentally break external code by introducing an alias.
+
+Works With Everything: Can rename any item:
+  • Types: use HashMap as Map
+  • Functions: use calculate_total as total
+  • Modules: use std::collections as col
+  • Traits: use std::fmt::Display as Show
+  • Constants: use MAX_SIZE as SIZE
+  • Even re-exports: pub use internal::Api as PublicApi
+
+Original Name Not Available: use HashMap as Map makes only Map available,
+  not HashMap. To have both, use two statements: use HashMap; use HashMap as Map;
+  This is intentional - forces explicit choice about what names are in scope.
+
+Renaming vs pub use: Combining pub use ... as creates a new public
+  name in your API. External code sees the renamed version. This is
+  powerful for API design - you can expose third-party types under your
+  own names, hiding the underlying dependency.
+
+💼 WHERE IT'S MOST USED
+• Resolving conflicts: use tokio::fs::File as TokioFile; use std::fs::File;
+• Result types: use std::io::Result as IoResult; (every module defines Result)
+• Shortening names: use very_long_crate_name::module as short;
+• Migration: use legacy::Database as OldDb; use modern::Database as NewDb;
+• API abstraction: pub use external_crate::Type as OurType;
+
+Common patterns:
+• Suffix pattern: DbUser, ApiUser, TestUser (shows origin)
+• Domain pattern: IoResult, DbResult, ParseResult (shows purpose)
+• Shortened modules: col for collections, fs for filesystem
+• Avoid generic renames like Map, List unless crystal clear in context
+
+✅ TAKEAWAY
+The as keyword renames imports to create local aliases, solving name
+conflicts and improving readability. Works with any item (types, functions,
+modules, traits). Renamed bindings are local to their scope - safe and
+non-invasive. Use it to import conflicting types, shorten verbose names,
+or enable gradual migration. Don't overuse - too many aliases confuse
+readers. Reserve renaming for genuine conflicts or clarity improvements.
+Combine with pub use to create public aliases in your API, hiding
+implementation details or third-party dependencies."#,
             difficulty: Difficulty::Intermediate,
         },
         Example {
@@ -93,13 +345,83 @@ mod front_of_house {
 pub use front_of_house::hosting;
 
 hosting::add_to_waitlist();"#,
-            commentary: r#"Re-exporting with pub use brings an item into the current module's public API, making it available to external code as if it were defined in the current module. This decouples your public API structure from your internal code organization. Libraries commonly use this to provide a convenient, flat API at the crate root while organizing implementation details in a deep module hierarchy. For example, users can write use mycrate::Widget instead of use mycrate::internal::ui::components::Widget, even though the latter is where Widget is actually defined.
+            commentary: r#"📚 INTRODUCTION
+Re-exporting with pub use brings an item into the current module's
+public API, making it accessible to external code as if defined locally.
+Write pub use internal::Widget to expose Widget at the current module's
+level, even though it's defined elsewhere. This decouples public API
+structure from internal code organization. Users see a clean, flat API
+while you organize implementation in deep hierarchies.
 
-This pattern is essential for evolving APIs without breaking backward compatibility. You can restructure internal modules, move items between files, and reorganize code freely as long as you maintain the same pub use exports at your public boundary. This gives you flexibility to improve code organization over time while preserving a stable API. Many popular crates use aggressive re-exporting to present a clean, simple API surface despite complex internal architecture.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+API design problems without re-exporting:
+• Leaky abstraction: internal structure exposed → can't refactor
+• Deep paths: use mycrate::internal::impl::detail::Widget → tedious
+• Breaking changes: moving files breaks external code → fragile
+• Discoverability: important types buried deep → hard to find
 
-The prelude pattern takes this further - many crates provide a prelude module that re-exports commonly used items in one place. Users can then import everything they typically need with a single use mycrate::prelude::*. This is considered good practice for libraries because it makes getting started quick and easy while still allowing fine-grained imports for advanced users. The standard library itself uses this pattern with std::prelude.
+Re-exporting solves this:
+• Stable API: pub use internal::Widget; at root → users use mycrate::Widget
+• Refactor freely: move internal modules, maintain re-exports → no breakage
+• Flat API surface: hide complexity, expose simplicity
+• Explicit design: choose what's public vs implementation detail
 
-In practice, use pub use to shape your public API intentionally. Think about what paths users should import from - make common paths short and discoverable. Hide internal implementation details in private modules, exposing only what users need. This creates a separation between interface and implementation that makes your code more maintainable and your API more stable. Document your public exports well, as they form the contract between your crate and its users."#,
+Unlike languages where module structure dictates API (Java packages,
+Python __init__), Rust separates implementation structure from public
+interface through pub use.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+API Independence: Internal organization can change completely without
+  breaking users. Move Widget from ui::components to widgets::core,
+  just update pub use - external code unchanged. This enables fearless
+  refactoring of published libraries.
+
+Visibility Requirements: The re-exported item must be visible from the
+  re-exporting location. Can't pub use a private item to make it public
+  (would violate privacy). All intermediate modules in the path must be
+  pub or at least visible to the re-exporting module.
+
+Prelude Pattern: Many crates provide a prelude module with:
+  pub mod prelude {
+      pub use crate::{CommonType, UsefulTrait, KeyFunction};
+  }
+  Users do use mycrate::prelude::*; to get started quickly. Standard
+  library's std::prelude is auto-imported in every module.
+
+Semantic Versioning: pub use creates API stability obligations. Adding
+  new pub use is minor version bump (backward compatible). Removing pub
+  use is major version bump (breaking change). Moving implementation
+  while maintaining pub use is patch version (invisible to users).
+
+Re-exporting External Items: Can re-export from dependencies:
+  pub use external_crate::Type;
+  This makes Type part of your API. If external_crate changes Type, your
+  API breaks. Use cautiously - creates tight coupling to dependency versions.
+
+💼 WHERE IT'S MOST USED
+• Crate root APIs: pub use internal::Widget; in lib.rs
+• Prelude modules: pub use commonly_used::items;
+• Facade pattern: pub use impl_detail::concrete as Trait;
+• Version compatibility: pub use v2::Api; (while v1 deprecated)
+• Framework exports: web frameworks expose Request, Response at root
+
+Common patterns:
+• Flat root API for small crates (everything at crate::Item)
+• Organized root API for large crates (crate::category::Item)
+• Prelude for getting started (crate::prelude::*)
+• Re-export traits needed for type functionality
+• Hide implementation crates in workspaces
+
+✅ TAKEAWAY
+Re-exporting with pub use shapes your public API independently from
+internal code organization. Expose items at convenient paths while
+organizing implementation in logical hierarchies. This enables refactoring
+without breaking external code - move files freely, just maintain re-exports.
+Use it to create flat, discoverable APIs and prelude modules for quick
+starts. Remember: pub use creates API contracts that follow semantic
+versioning - adding is safe, removing is breaking. Design your public
+surface intentionally, hide implementation details, and document exports
+well since they form your crate's contract with users."#,
             difficulty: Difficulty::Intermediate,
         },
         Example {
@@ -114,13 +436,79 @@ let mut set = HashSet::new();
 set.insert(42);
 
 println!("HashMap: {:?}, HashSet: {:?}", map, set);"#,
-            commentary: r#"The glob operator (*) imports all public items from a module into the current scope with use std::collections::*. This brings in every public function, type, trait, and constant, making them available without qualification. While convenient, glob imports make code harder to understand because you can't tell where names come from by looking at imports. They also create name collision risks - if two glob-imported modules export items with the same name, you'll get a compile error. The ambiguity increases maintenance burden for anyone reading or modifying the code later.
+            commentary: r#"📚 INTRODUCTION
+The glob operator (*) imports all public items from a module in one
+statement: use std::collections::* brings every public type, function,
+trait, and constant into scope. While maximally convenient, glob imports
+sacrifice clarity - you can't tell where names originate by looking at
+imports. Creates name collision risks when multiple globs export items
+with identical names (compile error).
 
-Glob imports are appropriate in specific contexts. Test modules commonly use them (use super::*) to import everything from the parent module being tested, keeping test code concise. Prelude modules are designed for glob import - they carefully curate a small set of commonly needed items. The standard library's prelude (automatically imported everywhere) is the canonical example. Custom preludes follow this pattern for crates where certain items are used pervasively. Documentation examples sometimes use globs to reduce clutter when the focus is on other concepts.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+Problems that tempt glob usage:
+• Verbosity: importing 20 items → 20 use statements or one long brace list
+• Test boilerplate: tests need most parent module items → repetitive imports
+• Prelude modules: carefully curated common items → meant for glob import
+• Example code: focusing on concepts, not import management → cleaner demos
 
-The compiler tracks which items are imported via glob, so unused imports still generate warnings. However, IDEs struggle to provide good autocomplete and navigation for glob imports since they can't determine statically what's available without analyzing the entire imported module. This degrades the development experience. The readability cost is real - when you see a type or function, you want to quickly identify its origin, and glob imports obscure that information.
+Glob provides convenience but at costs:
+• Origin obscured: see HashMap, can't tell it's from collections
+• Name collisions: two globs with Result → compile error, hard to diagnose
+• IDE confusion: autocomplete degraded, can't statically resolve what's available
+• Review friction: reviewers can't see dependencies without checking module
 
-Best practice: Avoid glob imports in production code except for preludes and test modules. Prefer explicit imports even if it means more lines - the clarity is worth it. Modern editors make adding imports easy with auto-complete and quick fixes. If you find yourself importing many items from one module, consider whether your code might be better organized or whether those items should be grouped differently. Explicit imports are self-documenting and make code reviews easier by showing exactly what dependencies exist."#,
+Unlike some languages (Python's from x import * is discouraged but common),
+Rust community strongly prefers explicit imports except in narrow contexts.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+Compile-Time Resolution: Glob imports are fully resolved at compile time.
+  The compiler knows exactly what's imported and generates identical code
+  to explicit imports. No runtime penalty, no lookup overhead. Still,
+  they obscure the code for humans.
+
+Unused Import Warnings: The compiler tracks glob-imported items and warns
+  if nothing from the glob is used. However, it can't warn about individual
+  unused items within the glob - it's all-or-nothing. This makes it harder
+  to clean up dependencies.
+
+Name Collision Behavior: If two globs import items with the same name,
+  using that name is a compile error. Must explicitly import one of them:
+  use std::io::Error;  // disambiguates from another glob's Error
+  Or qualify it: std::io::Error::new()
+
+Visibility Applies: Only public items are imported by globs. Private
+  items remain inaccessible. Within a module, use super::* imports
+  private parent items (child can access parent privates).
+
+Prelude Special Case: Rust's std::prelude::v1 is glob-imported automatically
+  in every module. This is why Option, Result, String, Vec, etc. are
+  available without imports. This is the canonical "good" use of globs
+  because the prelude is carefully curated for stability and minimal
+  collision risk.
+
+💼 WHERE IT'S MOST USED
+• Test modules: use super::* to import everything being tested
+• Prelude modules: use mycrate::prelude::* for getting started
+• Internal preludes: use crate::common::* for widely-used internal items
+• Derive macros: use serde::*; in quick examples
+• Documentation: examples focusing on other concepts
+
+Contexts to AVOID:
+• Production library code (obscures dependencies)
+• Public API modules (unclear what's exposed)
+• Multiple globs in same scope (collision risk)
+• Large modules with many items (brings in too much)
+
+✅ TAKEAWAY
+Glob imports (use module::*) bring all public items into scope for
+maximum convenience but minimum clarity. Appropriate for test modules,
+prelude modules, and focused examples. Avoid in production code where
+explicit imports aid readability, navigation, and code review. Glob
+imports have zero runtime cost but real human costs - readers can't
+identify where names originate without checking imported modules. The
+Rust community strongly prefers explicit imports except in narrow,
+well-justified contexts. When you need many items from a module, consider
+why - might indicate design issues or opportunities to reorganize code."#,
             difficulty: Difficulty::Intermediate,
         },
         Example {
@@ -139,13 +527,81 @@ Best practice: Avoid glob imports in production code except for preludes and tes
 
 my_mod::public_fn();
 // my_mod::private_fn();  // Error: private!"#,
-            commentary: r#"Rust's privacy system is private-by-default - every function, struct, enum, constant, trait, and module is private to its parent module unless explicitly marked pub. This design philosophy encourages intentional API design by making you consciously decide what to expose. Private items can be freely changed without breaking external code since no one outside the module can depend on them. Public items form a contract that should remain stable across versions to avoid breaking downstream users.
+            commentary: r#"📚 INTRODUCTION
+Rust's privacy system is private-by-default - every item (function, struct,
+enum, constant, trait, module) is private to its parent module unless
+marked pub. This forces intentional API design - you must consciously
+decide what to expose. Privacy is checked at compile time at module
+boundaries. Items within a module can access all other items in that
+module, regardless of pub.
 
-Privacy is enforced at module boundaries, not file boundaries or other units. All code within a module can access everything in that module, regardless of pub annotations. Child modules can access private items in their ancestors. Sibling modules cannot access each other's private items. This creates a clear encapsulation boundary where implementation details remain hidden. The privacy rules are checked at compile time, imposing zero runtime cost - there's no runtime reflection or access control mechanism.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+Public-by-default problems (C, Go, JavaScript):
+• Accidental dependencies: external code uses anything → can't refactor
+• No encapsulation: implementation details exposed → fragile APIs
+• Breaking changes: any change potentially breaks users → fear of evolution
+• Unclear intent: is this API or implementation? → confusion
 
-The module system's privacy rules enable fearless refactoring within module boundaries. You can completely restructure private code, rename functions, change data structures, and optimize implementations without worrying about breaking external code. Only changes to public items require consideration of backward compatibility. This separation of public interface from private implementation is fundamental to maintaining large codebases over time.
+Private-by-default solves this:
+• Explicit APIs: pub marks intentional public interface
+• Safe refactoring: private items changeable freely → fearless improvement
+• Clear boundaries: public is contract, private is implementation
+• Encapsulation enforced: compiler prevents accessing internals
 
-In practice, keep things private by default and only mark items pub when they're genuinely needed as part of your public API. For libraries, this means carefully curating what you expose - a smaller API surface is easier to maintain and evolve. For applications, privacy helps organize code into modules with clear responsibilities. A common pattern is to have a small public interface at module boundaries with extensive private implementation inside. This creates loose coupling between modules while maintaining tight cohesion within them."#,
+Unlike languages with runtime access control or convention-based privacy
+(Python's _prefix), Rust enforces privacy at compile time with zero
+runtime overhead.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+Zero-Cost Abstraction: Privacy is purely compile-time. The compiler
+  checks privacy rules, then generates code. No runtime access checks,
+  no performance penalty. Private and public functions compile to
+  identical machine code structure.
+
+Module Boundary Scope: Privacy operates at module boundaries:
+  • Within module: all items accessible to each other (even private)
+  • Parent to child: parent can access child's private items
+  • Child to parent: child can access parent's private items
+  • Sibling to sibling: can only access each other's pub items
+  This creates hierarchical encapsulation.
+
+Privacy Inheritance: Marking a module pub doesn't make its contents pub.
+  Must mark each item individually: pub mod foo { pub fn bar() {} }
+  If foo is pub but bar isn't, external code can see foo exists but can't
+  call bar. Allows exposing module structure while hiding implementation.
+
+Re-export Privacy: Can pub use a private item to make it public at
+  the re-export location. This doesn't change the item's original privacy,
+  just provides a public path to it. Enables API design flexibility.
+
+Test Module Exception: #[cfg(test)] modules can access private items
+  in their parent module. This is why you can test private functions
+  without making them pub. The test configuration makes them visible
+  during testing only.
+
+💼 WHERE IT'S MOST USED
+• API design: pub fn public_api() + fn helper() keeps helpers hidden
+• Library maintenance: change private items freely between versions
+• Encapsulation: pub struct with private fields + pub methods
+• Module organization: pub mod api, private mod implementation
+• Test support: private items testable via #[cfg(test)] mod tests
+
+Common patterns:
+• Small pub surface: 5-10 public items, 50+ private items
+• Builder pattern: pub builder methods, private construction logic
+• Internal modules: pub types, private implementation modules
+• Facade pattern: pub interface delegates to private implementations
+
+✅ TAKEAWAY
+Rust defaults everything to private, requiring explicit pub for public
+API. This enforces intentional design - you choose what to expose.
+Privacy is checked at compile time with zero runtime cost. All code
+within a module accesses everything; only external code needs pub.
+This enables fearless refactoring - change private items freely without
+breaking users. Keep most things private, exposing only necessary API
+surface. For libraries, smaller public APIs are easier to maintain and
+evolve. Think of pub as a promise to users - once public, changes must
+follow semantic versioning. Private items are yours to improve freely."#,
             difficulty: Difficulty::Intermediate,
         },
         // Advanced examples
@@ -166,13 +622,87 @@ In practice, keep things private by default and only mark items pub when they're
 }
 
 parent::child::child_function();"#,
-            commentary: r#"The super keyword creates relative paths that refer to the parent module, working like the .. directory operator in filesystem paths. When you write super::parent_function(), you're accessing an item one level up in the module tree. This is particularly useful when child modules need to access items in their parent or sibling modules. Relative paths with super are more maintainable than absolute paths because they continue working when you move entire module hierarchies around in your codebase.
+            commentary: r#"📚 INTRODUCTION
+The super keyword creates relative paths referencing the parent module,
+like .. in filesystem paths. Write super::parent_function() to access
+items one level up the module tree. More maintainable than absolute
+paths for closely related modules - when you move the entire hierarchy,
+super paths continue working. Can chain (super::super::) to go up
+multiple levels.
 
-You can chain super to go up multiple levels: super::super::grandparent_function() goes up two levels. However, excessive chaining suggests your module structure might be too deeply nested. The super keyword works with Rust's privacy rules - a child module can access private items in its parent modules, making super the natural way to reference that functionality. This is more explicit and refactoring-friendly than using absolute paths starting from crate::.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+Absolute path problems in nested modules:
+• Fragile: moving module hierarchy breaks crate::old::path references
+• Verbose: crate::very::deep::nesting::item repeated everywhere
+• Unclear intent: using absolute path for parent → obscures relationship
+• Refactoring friction: reorganizing modules requires updating many paths
 
-The most common use case for super is in test modules. By convention, tests are often placed in a child module (mod tests) within the same file as the code they test. Tests need to access the parent module's functions, including private ones. Using super::function_to_test makes this clear and automatic. When you move the file or refactor the module hierarchy, these relative paths automatically adjust, unlike absolute paths that might break.
+Relative paths with super solve this:
+• Refactor-friendly: move entire module tree, relative paths still work
+• Express relationship: super says "my parent" (structural, not logical)
+• Concise for nearby code: super::sibling vs crate::module::sibling
+• Test pattern: super::function_to_test from #[cfg(test)] mod tests
 
-In practice, choose between super (relative) and crate:: (absolute) paths based on context. Use super when accessing closely related modules, especially within the same file or subsystem. Use absolute paths for accessing distinct, loosely coupled modules where you want clarity about exactly what's being referenced. The key insight: super expresses a structural relationship (this is my parent), while absolute paths express a logical dependency (I need this specific module). Both have their place in idiomatic Rust code."#,
+Unlike languages where relative imports are error-prone (Python's relative
+imports have many gotchas), Rust's super is simple and unambiguous - always
+means parent module.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+Structural vs Logical Paths: Two philosophies:
+  • super::item = "my parent's item" (structural relationship)
+  • crate::module::item = "this specific item" (logical dependency)
+  Use super for tightly coupled code, crate:: for distinct modules.
+  Both compile to identical code, difference is expressiveness.
+
+Privacy Interaction: Child modules can access parent's private items.
+  super::private_function() works from child, even if private_function
+  isn't pub. This is fundamental to Rust's privacy model - hierarchy
+  determines access, not pub keywords within family.
+
+Chaining Allowed: super::super::grandparent_item goes up two levels.
+  super::super::super goes up three. Excessive chaining (more than 2)
+  often indicates overly deep nesting or poor module organization.
+  Consider flattening the hierarchy.
+
+Works Everywhere: super works in use statements, function calls, type
+  paths, anywhere a path is valid:
+  • use super::Parent;
+  • let x = super::create();
+  • impl super::Trait for Type {}
+
+Test Module Pattern: The canonical super use case:
+  mod tests {
+      use super::*;  // import everything from parent
+      #[test]
+      fn test_private_function() {
+          super::private_helper();  // can test private items
+      }
+  }
+
+💼 WHERE IT'S MOST USED
+• Test modules: use super::* to import parent's items for testing
+• Sibling access: super::sibling_module::function from child
+• Helper utilities: super::common_helper() from multiple submodules
+• Type references: impl super::Trait for LocalType
+• Constructor patterns: super::Builder::new() from submodule
+
+Common patterns:
+• Tests in same file: mod tests { use super::*; }
+• Submodule collaboration: super::sibling when siblings need to interact
+• One level up: super::item (common), super::super (rare), more is code smell
+• Mix with absolute: use super for nearby, crate:: for distant
+
+✅ TAKEAWAY
+The super keyword creates relative paths to parent modules, expressing
+structural relationships (this is my parent) rather than logical dependencies
+(I need that specific module). Particularly useful in test modules for
+accessing private items from the parent. Chain super::super:: to go
+up multiple levels, though excessive chaining suggests poor organization.
+Choose super for closely related modules (especially in same file) and
+crate:: for distant modules where clarity about the exact dependency
+is valuable. Both compile identically; difference is intent and maintainability.
+Relative paths survive refactoring better than absolute paths within
+tightly coupled module families."#,
             difficulty: Difficulty::Advanced,
         },
         Example {
@@ -198,13 +728,87 @@ In practice, choose between super (relative) and crate:: (absolute) paths based 
 let rect = shapes::Rectangle::new(30, 50);
 println!("Width: {}, Area: {}", rect.width, rect.area());
 // println!("{}", rect.height);  // Error: private field"#,
-            commentary: r#"Struct field visibility is independent of struct visibility - pub struct only makes the type name public, while fields remain private by default. You can mark individual fields pub to expose them selectively, creating mixed public/private field structs. This fine-grained control lets you expose some data directly while hiding implementation details or maintaining invariants through methods. For example, you might expose width publicly for direct access while keeping height private with a validated setter that ensures it's never negative.
+            commentary: r#"📚 INTRODUCTION
+Struct field visibility is independent of struct visibility. pub struct
+Rectangle makes the type name public, but fields remain private by default.
+Mark individual fields pub selectively: pub width but private height.
+This fine-grained control enables encapsulation - expose safe parts
+directly, hide implementation details, and maintain invariants through
+controlled access methods.
 
-This visibility model enables proper encapsulation in ways many languages struggle with. In languages where all struct fields are public by default, it's easy to accidentally create dependencies on internal representation. Rust's private-by-default fields prevent this. You can freely change private field types, representations, or organizations without breaking external code. If a field is public, changing it is a breaking API change. This forces you to think carefully about what truly belongs in your public interface.
+🎯 WHY IT EXISTS & PROBLEM IT SOLVES
+Public fields by default problems (C, Go):
+• Broken invariants: Rectangle.width = -10 allowed → invalid state
+• Refactoring locked: changing field type/name breaks external code
+• No validation: direct field access bypasses checks
+• Implementation exposed: users depend on internal representation
 
-The common pattern is to keep all fields private and provide public constructors and accessor methods. This gives you complete control over initialization (ensuring invariants are established) and access patterns (allowing validation, logging, or computed properties). Methods can evolve without breaking API - you might start with a simple field access, then add validation or caching later. If the field were public, such evolution would be impossible without breaking changes.
+Private-by-default fields solve this:
+• Controlled access: methods validate (ensure height > 0)
+• Free refactoring: change private field representation without breakage
+• Invariant maintenance: constructor establishes, methods preserve guarantees
+• API evolution: start with direct access, add logic later without breaking
 
-For structs with all public fields, you get automatic struct literal construction from outside the module (Rectangle { width: 10, height: 20 }). With private fields, you must provide a constructor function or builder pattern. This is actually a feature - it centralizes object creation, making it easy to add validation, logging, or complex initialization logic later. The builder pattern is particularly popular for structs with many fields or optional configuration, providing a fluent API while maintaining encapsulation."#,
+Unlike languages with getter/setter conventions (Java beans), Rust
+enforces encapsulation at compile time. Can't access private fields
+even via reflection.
+
+🔍 IMPORTANT DETAILS & INTRICACIES
+Independence from Type Visibility: pub struct doesn't imply pub fields.
+  Three visibility levels combine:
+  1. Type visibility: pub struct (external code can name it)
+  2. Field visibility: pub width (external code can access it)
+  3. Module visibility: determines who "external" is
+  This three-way combination enables precise API control.
+
+Construction Implications: Struct literal syntax requires all fields accessible:
+  • All pub fields: Rectangle { width: 10, height: 20 } works externally
+  • Any private field: constructor required (Rectangle::new(10, 20))
+  Private fields force constructor functions, centralizing initialization
+  and allowing invariant establishment.
+
+Pattern Matching: Can't destructure private fields externally:
+  let Rectangle { width, height } = rect;  // error if height private
+  Must use accessors: let h = rect.height(); or destructure with ..:
+  let Rectangle { width, .. } = rect;  // ignores private fields
+
+Builder Pattern Enabler: Private fields make builder pattern natural:
+  Rectangle::builder()
+      .width(10)
+      .height(20)
+      .build()
+  Each setter can validate. build() ensures all required fields set.
+
+Selective Publicity: Common patterns:
+  • pub data, private cache: expose data, hide optimization
+  • pub id, private mutable state: expose identifier, control changes
+  • all private + pub methods: complete encapsulation (most robust)
+
+💼 WHERE IT'S MOST USED
+• Invariant enforcement: pub struct Point { pub x: f64, pub y: f64 } is fine,
+  but pub struct Temperature { celsius: f64 } keeps invariants safe
+• Builder pattern: all fields private, builder methods pub
+• Computed properties: private storage, pub methods return computed values
+• Representation hiding: private Vec<T>, pub methods expose &[T]
+• Migration safety: keep fields private during API evolution
+
+Common patterns:
+• Simple data: all pub fields (Point, Color) when no invariants
+• Domain objects: private fields + pub methods (User, Account)
+• Builders: private fields + pub setters + build()
+• Read-only exposure: private field + pub getter, no setter
+
+✅ TAKEAWAY
+Struct field visibility is independent from struct visibility. Fields
+default to private even in pub structs. Mark fields pub selectively
+to expose safe parts while hiding implementation details. Private fields
+require constructors (Rectangle::new) instead of literals (Rectangle { }),
+centralizing initialization and enabling validation. This fine-grained
+control enables proper encapsulation - maintain invariants, refactor
+freely, evolve APIs safely. Common pattern: keep all fields private,
+provide pub constructors and methods. Only make fields pub when they're
+truly part of your public contract and have no invariants to maintain.
+Privacy enables fearless refactoring of internal representation."#,
             difficulty: Difficulty::Advanced,
         },
     ]
