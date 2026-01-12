@@ -482,28 +482,118 @@ fn run_specific_example(chapter_name: &str, example_name: &str) {
 
 fn print_code_with_syntax_highlighting(code: &str) {
     for line in code.lines() {
+        // Check if line is a comment
         let trimmed = line.trim_start();
-        let indent = &line[..line.len() - trimmed.len()];
+        if trimmed.starts_with("//") {
+            println!("{}", line.dimmed());
+            continue;
+        }
 
-        // Simple syntax highlighting
-        let highlighted = if trimmed.starts_with("//") {
-            trimmed.dimmed().to_string()
-        } else if trimmed.starts_with("fn ")
-            || trimmed.starts_with("pub fn")
-            || trimmed.starts_with("struct ")
-            || trimmed.starts_with("enum ")
-            || trimmed.starts_with("impl ")
-            || trimmed.starts_with("trait ")
-        {
-            trimmed.blue().bold().to_string()
-        } else if trimmed.starts_with("let ") || trimmed.starts_with("const ") {
-            trimmed.green().to_string()
-        } else if trimmed.starts_with("use ") || trimmed.starts_with("mod ") {
-            trimmed.magenta().to_string()
-        } else {
-            trimmed.to_string()
-        };
+        // Enhanced syntax highlighting
+        let mut output = String::new();
+        let mut chars = line.chars().peekable();
+        let mut current_word = String::new();
+        let mut in_string = false;
+        let mut string_buffer = String::new();
 
-        println!("{}{}", indent, highlighted);
+        while let Some(ch) = chars.next() {
+            // Handle string literals
+            if ch == '"' {
+                if in_string {
+                    string_buffer.push(ch);
+                    output.push_str(&string_buffer.bright_green().to_string());
+                    string_buffer.clear();
+                    in_string = false;
+                } else {
+                    if !current_word.is_empty() {
+                        output.push_str(&colorize_word(&current_word));
+                        current_word.clear();
+                    }
+                    string_buffer.push(ch);
+                    in_string = true;
+                }
+                continue;
+            }
+
+            if in_string {
+                string_buffer.push(ch);
+                continue;
+            }
+
+            // Handle words and identifiers
+            if ch.is_alphanumeric() || ch == '_' {
+                current_word.push(ch);
+            } else {
+                if !current_word.is_empty() {
+                    output.push_str(&colorize_word(&current_word));
+                    current_word.clear();
+                }
+
+                // Check for special characters and operators
+                if ch == '&' || ch == '*' || ch == '!' {
+                    output.push_str(&ch.to_string().yellow().to_string());
+                } else {
+                    output.push(ch);
+                }
+            }
+        }
+
+        // Handle remaining word
+        if !current_word.is_empty() {
+            output.push_str(&colorize_word(&current_word));
+        }
+
+        // Handle unterminated string
+        if in_string {
+            output.push_str(&string_buffer.bright_green().to_string());
+        }
+
+        println!("{}", output);
+    }
+}
+
+fn colorize_word(word: &str) -> String {
+    match word {
+        // Keywords - Blue
+        "fn" | "pub" | "struct" | "enum" | "impl" | "trait" | "async" | "await"
+        | "type" | "where" | "unsafe" | "extern" | "dyn" => {
+            word.blue().to_string()
+        }
+        // Variable declarations - Green
+        "let" | "mut" | "const" | "static" | "ref" => {
+            word.green().to_string()
+        }
+        // Module system - Magenta
+        "use" | "mod" | "crate" | "self" | "super" | "as" | "in" => {
+            word.magenta().to_string()
+        }
+        // Control flow - Yellow
+        "if" | "else" | "match" | "loop" | "while" | "for" | "return"
+        | "break" | "continue" | "yield" => {
+            word.yellow().to_string()
+        }
+        // Boolean and special literals - Cyan
+        "true" | "false" | "None" | "Some" | "Ok" | "Err" => {
+            word.cyan().to_string()
+        }
+        // Common types - Bright Blue
+        "String" | "Vec" | "Option" | "Result" | "Box" | "Rc" | "Arc"
+        | "HashMap" | "HashSet" | "i8" | "i16" | "i32" | "i64" | "i128"
+        | "u8" | "u16" | "u32" | "u64" | "u128" | "f32" | "f64"
+        | "bool" | "char" | "str" | "usize" | "isize" => {
+            word.bright_blue().to_string()
+        }
+        // Move semantics - Bright Yellow
+        "move" | "Copy" | "Clone" | "Drop" => {
+            word.bright_yellow().to_string()
+        }
+        _ => {
+            // Check if it's a number
+            if word.chars().all(|c| c.is_numeric() || c == '.' || c == '_') {
+                word.bright_magenta().to_string()
+            } else {
+                word.to_string()
+            }
+        }
     }
 }
