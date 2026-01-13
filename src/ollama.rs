@@ -55,9 +55,78 @@ fn strip_ansi(s: &str) -> String {
     result
 }
 
+fn format_rust_char(ch: char) -> String {
+    // Simple Rust syntax highlighting
+    ch.to_string().bright_yellow().to_string()
+}
+
 fn format_markdown_char(ch: char, state: &mut MarkdownState) -> Option<String> {
+    // Track backticks for code blocks
+    if ch == '`' {
+        if state.at_line_start || state.code_block_backticks > 0 {
+            state.code_block_backticks += 1;
+            state.last_char = Some(ch);
+
+            // Check if we have 3 backticks (code block delimiter)
+            if state.code_block_backticks == 3 {
+                state.in_code_block = !state.in_code_block;
+                state.code_block_backticks = 0;
+
+                // If exiting code block, reset rust flag
+                if !state.in_code_block {
+                    state.in_rust_block = false;
+                }
+                return None; // Hide the backticks
+            }
+            return None;
+        } else {
+            // Single backtick inline code
+            state.in_code = !state.in_code;
+            state.last_char = Some(ch);
+            return None;
+        }
+    } else if state.code_block_backticks > 0 && state.code_block_backticks < 3 {
+        // We had some backticks but not 3, output them and continue
+        let backticks = "`".repeat(state.code_block_backticks);
+        state.code_block_backticks = 0;
+        let mut result = backticks;
+        result.push(ch);
+        state.last_char = Some(ch);
+        state.at_line_start = false;
+        return Some(result);
+    }
+
+    // Check if we just entered a code block and the next chars are "rust"
+    if state.in_code_block && !state.in_rust_block && state.at_line_start {
+        // Buffer to check for "rust"
+        if ch == 'r' || ch == 'u' || ch == 's' || ch == 't' {
+            state.last_char = Some(ch);
+            return None; // Hide language identifier
+        } else if ch == '\n' && state.last_char == Some('t') {
+            // We just saw "rust" and now a newline
+            state.in_rust_block = true;
+            state.at_line_start = true;
+            state.last_char = Some(ch);
+            return Some("\n".to_string());
+        } else if ch == '\n' {
+            // Just a newline after opening backticks, assume rust
+            state.in_rust_block = true;
+            state.at_line_start = true;
+            state.last_char = Some(ch);
+            return Some("\n".to_string());
+        }
+    }
+
+    // If we're in a rust code block, apply syntax highlighting
+    if state.in_rust_block && ch != '\n' {
+        let formatted = format_rust_char(ch);
+        state.last_char = Some(ch);
+        state.at_line_start = false;
+        return Some(formatted);
+    }
+
     // Track consecutive dashes for horizontal rules
-    if ch == '-' && state.at_line_start && !state.in_code {
+    if ch == '-' && state.at_line_start && !state.in_code && !state.in_code_block {
         state.consecutive_dashes += 1;
         state.last_char = Some(ch);
         return None;
@@ -97,11 +166,6 @@ fn format_markdown_char(ch: char, state: &mut MarkdownState) -> Option<String> {
     }
 
     match ch {
-        '`' => {
-            state.in_code = !state.in_code;
-            state.last_char = Some(ch);
-            None
-        }
         '*' if state.last_char == Some('*') && !state.in_code => {
             // Toggle bold mode on **
             state.in_bold = !state.in_bold;
@@ -172,6 +236,9 @@ struct MarkdownState {
     in_bold: bool,
     last_char: Option<char>,
     consecutive_dashes: usize,
+    in_code_block: bool,
+    code_block_backticks: usize,
+    in_rust_block: bool,
 }
 
 impl MarkdownState {
@@ -185,6 +252,9 @@ impl MarkdownState {
             in_bold: false,
             last_char: None,
             consecutive_dashes: 0,
+            in_code_block: false,
+            code_block_backticks: 0,
+            in_rust_block: false,
         }
     }
 }
@@ -262,8 +332,8 @@ impl OllamaClient {
                                 callback(&current_line);
                                 callback("\n");
                                 current_line.clear();
-                            } else if ch.is_whitespace() && !md_state.in_code {
-                                // Only wrap if not in code block
+                            } else if ch.is_whitespace() && !md_state.in_code && !md_state.in_code_block {
+                                // Only wrap if not in inline code or code block
                                 if visible_len >= max_width {
                                     callback(&current_line);
                                     callback("\n");
@@ -274,8 +344,8 @@ impl OllamaClient {
                             } else {
                                 current_line.push_str(&formatted);
 
-                                // Check if we need to wrap mid-word (skip if in code)
-                                if !md_state.in_code && visible_len > max_width + 10 {
+                                // Check if we need to wrap mid-word (skip if in code or code block)
+                                if !md_state.in_code && !md_state.in_code_block && visible_len > max_width + 10 {
                                     if let Some(last_space) = current_line.rfind(' ') {
                                         let (first, rest) = current_line.split_at(last_space);
                                         callback(first);
