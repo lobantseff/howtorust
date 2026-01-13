@@ -7,6 +7,7 @@ pub mod error_handling;
 pub mod generics;
 pub mod iterators;
 pub mod lifetimes;
+pub mod ollama;
 pub mod ownership;
 pub mod packages_crates_modules;
 pub mod threads;
