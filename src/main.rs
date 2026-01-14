@@ -6,6 +6,7 @@ use crossterm::{
     terminal::{self, ClearType},
 };
 use howtorust::{get_chapter_examples, run_chapter_example, Difficulty, CHAPTERS};
+use howtorust::ollama::OllamaClient;
 use std::env;
 use std::io::{self, stdout, Write};
 
@@ -484,6 +485,251 @@ fn display_and_run_example(chapter_name: &str, example: &howtorust::Example) {
     run_chapter_example(chapter_name, example.name);
     println!("{}", "-".repeat(60).dimmed());
     println!();
+
+    // Show interactive menu
+    example_actions_menu(chapter_name, example);
+}
+
+fn example_actions_menu(chapter_name: &str, example: &howtorust::Example) {
+    let mut history = Vec::new();
+
+    loop {
+        println!();
+        println!("{}", "Commands: /chat (or /c) - chat with AI | /run - run again | /code - show code | /back - return".dimmed());
+        print!("{} ", ">".green().bold());
+        io::stdout().flush().unwrap();
+
+        let input = match read_line_with_history(&mut history) {
+            Ok(line) => line,
+            Err(_) => {
+                println!("Error reading input");
+                continue;
+            }
+        };
+
+        let cmd = input.trim();
+
+        match cmd {
+            "/chat" | "/c" => {
+                let rt = tokio::runtime::Runtime::new().unwrap();
+                rt.block_on(async {
+                    start_chat_mode(example).await;
+                });
+            }
+            "/run" | "/r" => {
+                println!();
+                println!("{}", "Output:".bold().magenta());
+                println!("{}", "-".repeat(60).dimmed());
+                run_chapter_example(chapter_name, example.name);
+                println!("{}", "-".repeat(60).dimmed());
+            }
+            "/code" => {
+                println!();
+                println!("{}", "Code:".bold().green());
+                println!("{}", "-".repeat(60).dimmed());
+                print_code_with_syntax_highlighting(example.code);
+                println!("{}", "-".repeat(60).dimmed());
+            }
+            "/back" | "/b" | "quit" | "exit" | "" => {
+                break;
+            }
+            _ => {
+                println!("{} Unknown command: {}", "Error:".red().bold(), cmd);
+            }
+        }
+    }
+}
+
+async fn start_chat_mode(example: &howtorust::Example) {
+    println!();
+    println!("{}", "=".repeat(60).cyan());
+    println!("{}", "Chat Mode - Ask questions about this example".bold().cyan());
+    println!("{}", "Type /quit, /exit, or /q to exit chat".dimmed());
+    println!("{}", "=".repeat(60).cyan());
+    println!();
+
+    let ollama = OllamaClient::new(
+        "http://localhost:11434".to_string(),
+        "deepseek-v3.1:671b-cloud".to_string(),
+    );
+
+    // Initialize conversation with example context
+    let mut messages: Vec<(String, String)> = vec![
+        (
+            "system".to_string(),
+            format!(
+                "You are a helpful Rust programming assistant. The user is learning about the following example:\n\n\
+                Example: {}\n\
+                Description: {}\n\n\
+                Commentary:\n{}\n\n\
+                Code:\n{}\n\n\
+                Please help the user understand this example by answering their questions.",
+                example.name,
+                example.description,
+                example.commentary,
+                example.code
+            ),
+        ),
+    ];
+
+    let mut chat_history: Vec<String> = Vec::new();
+
+    loop {
+        print!("{} ", "You:".green().bold());
+        io::stdout().flush().unwrap();
+
+        let user_input = match read_chat_input(&mut chat_history) {
+            Ok(input) => input,
+            Err(_) => {
+                println!("Error reading input");
+                continue;
+            }
+        };
+
+        let trimmed = user_input.trim();
+
+        // Check for exit commands
+        if trimmed == "/quit" || trimmed == "/exit" || trimmed == "/q" {
+            break;
+        }
+
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        // Add user message to conversation
+        messages.push(("user".to_string(), trimmed.to_string()));
+
+        // Get AI response
+        print!("{} ", "AI:".cyan().bold());
+        io::stdout().flush().unwrap();
+
+        match ollama.chat_stream(&messages, |chunk| {
+            print!("{}", chunk);
+            io::stdout().flush().unwrap();
+        }).await {
+            Ok(response) => {
+                println!();
+
+                // Word wrap the response for display (already printed during streaming)
+                // Just add to message history
+                messages.push(("assistant".to_string(), response));
+            }
+            Err(e) => {
+                println!("{} Failed to get response: {}", "Error:".red().bold(), e);
+                println!("{}", "Make sure Ollama is running at localhost:11434".yellow());
+                println!();
+                messages.pop(); // Remove the user message if we couldn't get a response
+            }
+        }
+    }
+
+    println!();
+    println!("{}", "Exiting chat mode...".dimmed());
+    println!();
+}
+
+fn read_chat_input(history: &mut Vec<String>) -> io::Result<String> {
+    let mut input = String::new();
+    let mut history_index: Option<usize> = None;
+    let mut current_input = String::new();
+
+    terminal::enable_raw_mode()?;
+    let mut stdout = stdout();
+
+    loop {
+        if let Event::Key(KeyEvent {
+            code, modifiers, ..
+        }) = event::read()?
+        {
+            match code {
+                KeyCode::Enter => {
+                    terminal::disable_raw_mode()?;
+                    println!();
+                    if !input.trim().is_empty() && !history.contains(&input.trim().to_string()) {
+                        history.push(input.trim().to_string());
+                    }
+                    return Ok(input);
+                }
+                KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
+                    terminal::disable_raw_mode()?;
+                    println!();
+                    return Ok(String::from("/quit"));
+                }
+                KeyCode::Char(c) => {
+                    input.insert(input.len(), c);
+                    print!("{}", c);
+                    stdout.flush()?;
+                    current_input = input.clone();
+                    history_index = None;
+                }
+                KeyCode::Backspace => {
+                    if !input.is_empty() {
+                        input.pop();
+                        execute!(
+                            stdout,
+                            cursor::MoveLeft(1),
+                            terminal::Clear(ClearType::UntilNewLine)
+                        )?;
+                        current_input = input.clone();
+                        history_index = None;
+                    }
+                }
+                KeyCode::Up => {
+                    if !history.is_empty() {
+                        if history_index.is_none() {
+                            current_input = input.clone();
+                            history_index = Some(history.len() - 1);
+                        } else if let Some(idx) = history_index {
+                            if idx > 0 {
+                                history_index = Some(idx - 1);
+                            }
+                        }
+
+                        if let Some(idx) = history_index {
+                            execute!(
+                                stdout,
+                                cursor::MoveToColumn(0),
+                                terminal::Clear(ClearType::CurrentLine)
+                            )?;
+                            print!("{} ", "You:".green().bold());
+                            input = history[idx].clone();
+                            print!("{}", input);
+                            stdout.flush()?;
+                        }
+                    }
+                }
+                KeyCode::Down => {
+                    if let Some(idx) = history_index {
+                        if idx < history.len() - 1 {
+                            history_index = Some(idx + 1);
+                            execute!(
+                                stdout,
+                                cursor::MoveToColumn(0),
+                                terminal::Clear(ClearType::CurrentLine)
+                            )?;
+                            print!("{} ", "You:".green().bold());
+                            input = history[history_index.unwrap()].clone();
+                            print!("{}", input);
+                            stdout.flush()?;
+                        } else {
+                            history_index = None;
+                            execute!(
+                                stdout,
+                                cursor::MoveToColumn(0),
+                                terminal::Clear(ClearType::CurrentLine)
+                            )?;
+                            print!("{} ", "You:".green().bold());
+                            input = current_input.clone();
+                            print!("{}", input);
+                            stdout.flush()?;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
 }
 
 fn run_specific_example(chapter_name: &str, example_name: &str) {
