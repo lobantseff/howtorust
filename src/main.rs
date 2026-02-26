@@ -9,6 +9,8 @@ use howtorust::ollama::OllamaClient;
 use howtorust::{get_chapter_examples, run_chapter_example, Difficulty, CHAPTERS};
 use std::env;
 use std::io::{self, stdout, Write};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -604,18 +606,54 @@ async fn start_chat_mode(example: &howtorust::Example) {
         // Add user message to conversation
         messages.push(("user".to_string(), trimmed.to_string()));
 
-        // Get AI response
+        // Get AI response with thinking indicator
         print!("{} ", "AI:".cyan().bold());
         io::stdout().flush().unwrap();
 
+        // Start thinking spinner
+        let thinking = Arc::new(AtomicBool::new(true));
+        let thinking_clone = Arc::clone(&thinking);
+        let spinner_handle = tokio::spawn(async move {
+            let frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+            let mut i = 0;
+            while thinking_clone.load(Ordering::Relaxed) {
+                let frame = frames[i % frames.len()];
+                print!(
+                    "\r{} {} {}",
+                    "AI:".cyan().bold(),
+                    frame.yellow(),
+                    "Thinking...".dimmed()
+                );
+                io::stdout().flush().unwrap();
+                tokio::time::sleep(std::time::Duration::from_millis(80)).await;
+                i += 1;
+            }
+            // Clear the spinner line and reprint the AI prefix
+            print!("\r{} {}", "AI:".cyan().bold(), " ".repeat(20));
+            print!("\r{} ", "AI:".cyan().bold());
+            io::stdout().flush().unwrap();
+        });
+
+        let first_token = Arc::clone(&thinking);
         match ollama
-            .chat_stream(&messages, |chunk| {
+            .chat_stream(&messages, move |chunk| {
+                // Stop spinner on first token
+                if first_token.load(Ordering::Relaxed) {
+                    first_token.store(false, Ordering::Relaxed);
+                    // Brief pause to let spinner task clear itself
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                    print!("\r{} ", "AI:".cyan().bold());
+                    io::stdout().flush().unwrap();
+                }
                 print!("{}", chunk);
                 io::stdout().flush().unwrap();
             })
             .await
         {
             Ok(response) => {
+                // Ensure spinner is stopped
+                thinking.store(false, Ordering::Relaxed);
+                let _ = spinner_handle.await;
                 println!();
 
                 // Word wrap the response for display (already printed during streaming)
@@ -623,6 +661,9 @@ async fn start_chat_mode(example: &howtorust::Example) {
                 messages.push(("assistant".to_string(), response));
             }
             Err(e) => {
+                // Ensure spinner is stopped on error
+                thinking.store(false, Ordering::Relaxed);
+                let _ = spinner_handle.await;
                 println!("{} Failed to get response: {}", "Error:".red().bold(), e);
                 println!(
                     "{}",
