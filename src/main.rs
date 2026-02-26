@@ -5,8 +5,8 @@ use crossterm::{
     execute,
     terminal::{self, ClearType},
 };
-use howtorust::{get_chapter_examples, run_chapter_example, Difficulty, CHAPTERS};
 use howtorust::ollama::OllamaClient;
+use howtorust::{get_chapter_examples, run_chapter_example, Difficulty, CHAPTERS};
 use std::env;
 use std::io::{self, stdout, Write};
 
@@ -543,14 +543,18 @@ fn example_actions_menu(chapter_name: &str, example: &howtorust::Example) {
 async fn start_chat_mode(example: &howtorust::Example) {
     println!();
     println!("{}", "=".repeat(60).cyan());
-    println!("{}", "Chat Mode - Ask questions about this example".bold().cyan());
+    println!(
+        "{}",
+        "Chat Mode - Ask questions about this example".bold().cyan()
+    );
     println!("{}", "Type /quit, /exit, or /q to exit chat".dimmed());
     println!("{}", "=".repeat(60).cyan());
     println!();
 
     let ollama = OllamaClient::new(
         "http://localhost:11434".to_string(),
-        "deepseek-v3.1:671b-cloud".to_string(),
+        "minimax-m2:cloud".to_string(),
+        // "deepseek-v3.1:671b-cloud".to_string(),
     );
 
     // Initialize conversation with example context
@@ -604,10 +608,13 @@ async fn start_chat_mode(example: &howtorust::Example) {
         print!("{} ", "AI:".cyan().bold());
         io::stdout().flush().unwrap();
 
-        match ollama.chat_stream(&messages, |chunk| {
-            print!("{}", chunk);
-            io::stdout().flush().unwrap();
-        }).await {
+        match ollama
+            .chat_stream(&messages, |chunk| {
+                print!("{}", chunk);
+                io::stdout().flush().unwrap();
+            })
+            .await
+        {
             Ok(response) => {
                 println!();
 
@@ -617,7 +624,10 @@ async fn start_chat_mode(example: &howtorust::Example) {
             }
             Err(e) => {
                 println!("{} Failed to get response: {}", "Error:".red().bold(), e);
-                println!("{}", "Make sure Ollama is running at localhost:11434".yellow());
+                println!(
+                    "{}",
+                    "Make sure Ollama is running at localhost:11434".yellow()
+                );
                 println!();
                 messages.pop(); // Remove the user message if we couldn't get a response
             }

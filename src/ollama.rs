@@ -1,7 +1,7 @@
+use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
-use futures::StreamExt;
-use colored::Colorize;
+use std::time::Duration;
 
 #[derive(Debug, Serialize)]
 struct Message {
@@ -33,6 +33,7 @@ pub struct OllamaClient {
     model: String,
 }
 
+#[allow(dead_code)]
 fn strip_ansi(s: &str) -> String {
     let mut result = String::new();
     let mut chars = s.chars();
@@ -135,7 +136,11 @@ fn format_markdown_char(ch: char, state: &mut MarkdownState) -> Option<String> {
         state.consecutive_dashes = 0;
         if ch == '\n' {
             state.at_line_start = true;
-            return Some("────────────────────────────────────────────────────────────\n".dimmed().to_string());
+            return Some(
+                "────────────────────────────────────────────────────────────\n"
+                    .dimmed()
+                    .to_string(),
+            );
         } else {
             return None; // Skip spaces after ---
         }
@@ -145,7 +150,8 @@ fn format_markdown_char(ch: char, state: &mut MarkdownState) -> Option<String> {
         state.at_line_start = false;
         state.last_char = Some(ch);
         return Some("- ".to_string());
-    } else if state.consecutive_dashes > 0 && state.consecutive_dashes < 3 && ch != '-' && ch != ' ' {
+    } else if state.consecutive_dashes > 0 && state.consecutive_dashes < 3 && ch != '-' && ch != ' '
+    {
         // Not enough dashes for horizontal rule, and not a bullet (no space after)
         // Output the dashes and continue processing current char
         let mut result = "-".repeat(state.consecutive_dashes);
@@ -288,24 +294,26 @@ impl OllamaClient {
             stream: true,
         };
 
-        let client = reqwest::Client::new();
-        let response = client.post(&url).json(&request).send().await?;
+        let client = reqwest::Client::builder()
+            .no_gzip()
+            .no_brotli()
+            .no_deflate()
+            .build()?;
+        let mut response = client.post(&url).json(&request).send().await?;
 
         if !response.status().is_success() {
             return Err(format!("Ollama API error: {}", response.status()).into());
         }
 
         let mut full_response = String::new();
-        let mut current_line = String::new();
+        let mut current_line_visible_len: usize = 0;
+        let mut current_line_buf = String::new();
         let max_width = 60;
         let mut buffer = String::new();
         let mut md_state = MarkdownState::new();
 
-        // Stream the response chunk by chunk
-        let mut stream = response.bytes_stream();
-
-        while let Some(chunk_result) = stream.next().await {
-            let chunk_bytes = chunk_result?;
+        // Stream the response using chunk() for true incremental delivery
+        while let Some(chunk_bytes) = response.chunk().await? {
             let chunk_str = String::from_utf8_lossy(&chunk_bytes);
             buffer.push_str(&chunk_str);
 
@@ -322,51 +330,49 @@ impl OllamaClient {
                     let content = &chat_response.message.content;
                     full_response.push_str(content);
 
-                    // Process each character with markdown formatting
+                    // Process each character with markdown formatting and emit immediately
                     for ch in content.chars() {
                         if let Some(formatted) = format_markdown_char(ch, &mut md_state) {
-                            // Handle word wrapping on the visible length (strip ANSI codes for measurement)
-                            let visible_len = strip_ansi(&current_line).chars().count();
-
                             if ch == '\n' {
-                                callback(&current_line);
                                 callback("\n");
-                                current_line.clear();
-                            } else if ch.is_whitespace() && !md_state.in_code && !md_state.in_code_block {
-                                // Only wrap if not in inline code or code block
-                                if visible_len >= max_width {
-                                    callback(&current_line);
+                                current_line_visible_len = 0;
+                                current_line_buf.clear();
+                            } else if ch.is_whitespace()
+                                && !md_state.in_code
+                                && !md_state.in_code_block
+                            {
+                                if current_line_visible_len >= max_width {
+                                    // Wrap at whitespace boundary
                                     callback("\n");
-                                    current_line.clear();
+                                    current_line_visible_len = 0;
+                                    current_line_buf.clear();
                                 } else {
-                                    current_line.push_str(&formatted);
+                                    callback(&formatted);
+                                    current_line_visible_len += 1;
+                                    current_line_buf.push(ch);
                                 }
                             } else {
-                                current_line.push_str(&formatted);
+                                callback(&formatted);
+                                current_line_visible_len += 1;
+                                current_line_buf.push(ch);
 
-                                // Check if we need to wrap mid-word (skip if in code or code block)
-                                if !md_state.in_code && !md_state.in_code_block && visible_len > max_width + 10 {
-                                    if let Some(last_space) = current_line.rfind(' ') {
-                                        let (first, rest) = current_line.split_at(last_space);
-                                        callback(first);
-                                        callback("\n");
-                                        current_line = rest.trim_start().to_string();
-                                    } else {
-                                        callback(&current_line);
-                                        callback("\n");
-                                        current_line.clear();
-                                    }
+                                // Force wrap very long words (skip in code blocks)
+                                if !md_state.in_code
+                                    && !md_state.in_code_block
+                                    && current_line_visible_len > max_width + 10
+                                {
+                                    callback("\n");
+                                    current_line_visible_len = 0;
+                                    current_line_buf.clear();
                                 }
                             }
+                            // Small delay per visible character to ensure
+                            // streaming is perceptible in the terminal
+                            tokio::time::sleep(Duration::from_millis(2)).await;
                         }
                     }
                 }
             }
-        }
-
-        // Output any remaining content
-        if !current_line.is_empty() {
-            callback(&current_line);
         }
 
         Ok(full_response)
